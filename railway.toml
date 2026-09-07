@@ -1,6 +1,9 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+# The whole repo is one service. An empty/narrow watch path (common when
+# Railway guesses a monorepo) skips deploys and leaves a 502 in place.
+watchPatterns = ["**"]
 
 [deploy]
 healthcheckPath = "/healthz"

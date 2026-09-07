@@ -1,0 +1,26 @@
+{
+  "name": "taiwanese-mahjong",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multiplayer Taiwanese (16-tile) mahjong",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev -w @mahjong/server\" \"npm run dev -w @mahjong/client\"",
+    "build": "npm run build -w @mahjong/client",
+    "start": "node --import tsx server/src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -b shared server client",
+    "sim": "node --import tsx/esm server/src/sim.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

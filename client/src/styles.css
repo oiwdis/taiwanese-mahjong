@@ -1,0 +1,1542 @@
+:root {
+  --felt: #14532d;
+  --felt-dark: #0d3b21;
+  --ink: #1c1917;
+  --paper: #faf7f0;
+  --line: #d6d3d1;
+  --accent: #b91c1c;
+  --gold: #d97706;
+  --man: #1e3a8a;
+  --pin: #0f766e;
+  --sou: #15803d;
+  --wind: #334155;
+  --dragon-r: #b91c1c;
+  --dragon-g: #15803d;
+  --dragon-w: #1e40af;
+  --flower: #a16207;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(160deg, #0f2f1c, #08170f 70%);
+  color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.4rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.cn {
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.error {
+  color: #fca5a5;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ------------------------------------------------------------------ tiles */
+
+.tile {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #cbc6ba;
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #fffdf8, #f0ebe0);
+  color: var(--ink);
+  font-family: inherit;
+  cursor: default;
+  flex: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.tile-xs {
+  width: 26px;
+  height: 36px;
+}
+.tile-sm {
+  width: 34px;
+  height: 46px;
+}
+.tile-md {
+  width: 46px;
+  height: 62px;
+}
+.tile-lg {
+  width: clamp(34px, calc((100vw - 3.5rem) / 18), 54px);
+  height: clamp(48px, calc((100vw - 3.5rem) / 18 * 1.38), 74px);
+}
+
+.tile-glyph {
+  font-size: 1.6rem;
+  line-height: 1;
+  font-family: 'Apple Symbols', 'Segoe UI Symbol', 'Noto Sans Symbols 2', sans-serif;
+}
+.tile-xs .tile-glyph {
+  font-size: 1.05rem;
+}
+.tile-sm .tile-glyph {
+  font-size: 1.35rem;
+}
+.tile-lg .tile-glyph {
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+}
+
+/* The Latin corner label: rank large, suit letter small beside it. */
+.tile-corner {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5px;
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.tile-rank {
+  font-size: 0.62rem;
+}
+.tile-suit {
+  font-size: 0.46rem;
+  opacity: 0.7;
+}
+
+.tile-lg .tile-rank {
+  font-size: 0.82rem;
+}
+.tile-lg .tile-suit {
+  font-size: 0.6rem;
+}
+.tile-md .tile-rank {
+  font-size: 0.72rem;
+}
+.tile-xs .tile-rank {
+  font-size: 0.55rem;
+}
+.tile-xs .tile-suit {
+  font-size: 0.4rem;
+}
+
+.tile-suit-man .tile-corner,
+.tile-suit-man .tile-glyph {
+  color: var(--man);
+}
+.tile-suit-pin .tile-corner,
+.tile-suit-pin .tile-glyph {
+  color: var(--pin);
+}
+.tile-suit-sou .tile-corner,
+.tile-suit-sou .tile-glyph {
+  color: var(--sou);
+}
+.tile-suit-wind .tile-corner,
+.tile-suit-wind .tile-glyph {
+  color: var(--wind);
+}
+.tile-suit-dragon .tile-corner,
+.tile-suit-dragon .tile-glyph {
+  color: var(--dragon-r);
+}
+.tile-suit-season .tile-corner,
+.tile-suit-season .tile-glyph,
+.tile-suit-plant .tile-corner,
+.tile-suit-plant .tile-glyph {
+  color: var(--flower);
+}
+
+.tile-interactive {
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.tile-interactive:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+
+.tile-highlight {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.tile-dim {
+  opacity: 0.45;
+}
+
+.tile-back {
+  background: linear-gradient(150deg, #1d4ed8 0%, #1e3a8a 55%, #172554 100%);
+  border-color: #1e3a8a;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+}
+
+.tile-badge {
+  position: absolute;
+  bottom: 1px;
+  right: 2px;
+  font-size: 0.5rem;
+  opacity: 0.6;
+}
+
+.tile-row,
+.melds,
+.river,
+.seat-hand,
+.my-hand,
+.summary-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.my-hand {
+  gap: 3px;
+  padding: 0.25rem 0 0.1rem;
+  min-height: 0;
+  align-items: flex-end;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.melds {
+  gap: 8px;
+  margin: 0.25rem 0;
+}
+
+.meld {
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.meld-concealed {
+  background: rgba(30, 64, 175, 0.22);
+}
+
+.meld-flowers {
+  background: rgba(217, 119, 6, 0.18);
+}
+
+.river {
+  gap: 1px;
+  max-width: 260px;
+  margin-top: 0.3rem;
+  min-height: 38px;
+}
+
+.seat-hand {
+  gap: 1px;
+}
+
+/* ----------------------------------------------------------------- layout */
+
+.landing {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+}
+
+.landing-head {
+  max-width: 34rem;
+  text-align: center;
+}
+.landing-head h1 {
+  font-size: 2rem;
+}
+.landing-head p {
+  opacity: 0.75;
+  line-height: 1.5;
+}
+
+.landing-card,
+.seats-card,
+.rules-panel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 26rem;
+}
+
+.divider {
+  margin: 1rem 0 0.6rem;
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.6;
+}
+
+.join-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.85rem;
+}
+.field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.field-hint {
+  font-size: 0.72rem;
+  opacity: 0.55;
+  line-height: 1.35;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--paper);
+  width: 100%;
+}
+
+input[type='checkbox'] {
+  width: auto;
+  margin-right: 0.5rem;
+  accent-color: var(--gold);
+}
+
+.code-input {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--paper);
+  cursor: pointer;
+  transition: background 0.1s ease, transform 0.05s ease;
+}
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--gold);
+  border-color: #b45309;
+  color: #1c1917;
+  width: 100%;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #f59e0b;
+}
+
+.btn-win {
+  background: var(--accent);
+  border-color: #7f1d1d;
+}
+.btn-win:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-call {
+  background: rgba(59, 130, 246, 0.28);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.btn-pass {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-pass-warn {
+  background: rgba(180, 83, 9, 0.35);
+  border-color: rgba(217, 119, 6, 0.6);
+}
+
+.btn-tiny {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.45rem;
+}
+
+.leave {
+  position: fixed;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  opacity: 0.5;
+  z-index: 20;
+}
+.leave:hover {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ lobby */
+
+.lobby {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+.lobby-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.lobby-head p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.code-badge {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+.code-copy {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.lobby-body {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.seat-list {
+  list-style: none;
+  margin: 0.5rem 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.seat-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+.seat-list li.me {
+  outline: 1px solid var(--gold);
+}
+.seat-list li.empty {
+  opacity: 0.4;
+}
+.seat-wind {
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 3.2rem;
+  opacity: 0.75;
+}
+.seat-name {
+  flex: 1;
+  font-weight: 600;
+}
+.seat-tags {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tag {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.32rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.tag.warn {
+  background: rgba(217, 119, 6, 0.4);
+}
+.tag.dealer {
+  background: var(--accent);
+}
+.tag.thinking {
+  background: rgba(59, 130, 246, 0.4);
+}
+
+.lobby-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+}
+
+.rules-panel {
+  max-width: 30rem;
+  flex: 1;
+}
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0 0.9rem;
+}
+.rules-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.rules-toggles label {
+  display: flex;
+  align-items: flex-start;
+  opacity: 0.85;
+}
+
+/* ------------------------------------------------------------------ table */
+
+.table-screen {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0.5rem 0.4rem;
+  gap: 0.35rem;
+}
+
+.game-header {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  padding: 0.28rem 0.7rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.header-block {
+  display: flex;
+  flex-direction: column;
+}
+.header-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+}
+.header-value {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+.header-sub {
+  font-weight: 400;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+.header-code .header-value {
+  letter-spacing: 0.15em;
+}
+.streak {
+  color: var(--gold);
+  font-size: 0.78rem;
+}
+
+.table-felt {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  container-type: size;
+}
+
+/* ------------------------------------------------------- the round table */
+
+.round-table {
+  position: relative;
+  /* Fill the leftover felt as a square, never larger than the box. */
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  flex: none;
+}
+@supports (width: 1cqh) {
+  .round-table {
+    width: min(100cqw, 100cqh);
+    height: min(100cqw, 100cqh);
+  }
+}
+
+.felt-circle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 42%, var(--felt), var(--felt-dark) 78%);
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 0 0 6px rgba(0, 0, 0, 0.22),
+    inset 0 0 70px rgba(0, 0, 0, 0.5),
+    0 12px 40px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.25s ease;
+}
+
+/* The table visibly holds while a discard can still be claimed. */
+.round-table-claiming .felt-circle {
+  box-shadow:
+    inset 0 0 0 3px rgba(217, 119, 6, 0.55),
+    inset 0 0 70px rgba(0, 0, 0, 0.5),
+    0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* --------------------------------------------------------------- the wall */
+
+/* 4 sides x 18 stacks x 2 tiles high = the full 144-tile set.
+   The ring sits in a middle band: racks stay outside it, rivers stay inside. */
+.wall-ring {
+  position: absolute;
+  inset: 23%;
+  --wall-depth: 16px;
+  z-index: 0;
+}
+
+.wall-side {
+  position: absolute;
+  display: flex;
+}
+.wall-side-north,
+.wall-side-south {
+  left: 0;
+  right: 0;
+  height: var(--wall-depth);
+}
+.wall-side-north {
+  top: 0;
+}
+.wall-side-south {
+  bottom: 0;
+}
+/* The long sides own the corners, so the short sides start inside them. */
+.wall-side-east,
+.wall-side-west {
+  top: var(--wall-depth);
+  bottom: var(--wall-depth);
+  width: var(--wall-depth);
+  flex-direction: column;
+}
+.wall-side-east {
+  right: 0;
+}
+.wall-side-west {
+  left: 0;
+}
+
+.wall-stack {
+  position: relative;
+  flex: none;
+}
+.wall-side-north .wall-stack,
+.wall-side-south .wall-stack {
+  width: calc(100% / var(--per-side));
+  height: 100%;
+}
+.wall-side-east .wall-stack,
+.wall-side-west .wall-stack {
+  height: calc(100% / var(--per-side));
+  width: 100%;
+}
+
+.wall-tile {
+  position: absolute;
+  inset: 1px;
+  border-radius: 2px;
+  background: linear-gradient(150deg, #2c58c9 0%, #1e3a8a 60%, #172554 100%);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: opacity 0.25s ease, background 0.25s ease;
+}
+/* The lower tile peeks out from under the upper one to read as a stack. */
+.wall-tile-lower {
+  transform: translate(1.5px, 1.5px);
+  filter: brightness(0.6);
+}
+
+/* A drawn tile leaves an empty slot rather than vanishing, so the ring keeps
+   its shape and you can still see how much wall is left. */
+.wall-tile-taken {
+  background: rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+  filter: none;
+}
+.wall-tile-lower.wall-tile-taken {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* 海底: standing tiles that will never be reached. */
+.wall-tile-dead {
+  filter: grayscale(0.8) brightness(0.55);
+}
+.wall-tile-lower.wall-tile-dead {
+  filter: grayscale(0.8) brightness(0.4);
+}
+.wall-tile-taken.wall-tile-dead {
+  filter: none;
+}
+
+/* --------------------------------------------------------------- the hub */
+
+.table-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 24%;
+  text-align: center;
+}
+.hub-label {
+  font-size: 0.8rem;
+  font-weight: 650;
+  opacity: 0.85;
+}
+.hub-label-hold {
+  color: var(--gold);
+  opacity: 1;
+  animation: hub-pulse 1.1s ease-in-out infinite;
+}
+.hub-note {
+  font-size: 0.66rem;
+  opacity: 0.55;
+  line-height: 1.35;
+}
+
+@keyframes hub-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ------------------------------------------------------------ the rivers */
+
+/* Discards sit in front of whoever threw them, six to a line — across for
+   north/south, down for east/west — the way they sit on a real table. */
+.river {
+  --river-w: 24px;
+  --river-h: 34px;
+  position: absolute;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-content: flex-start;
+  max-width: none;
+  margin: 0;
+  min-height: 0;
+  z-index: 2;
+}
+.river .tile {
+  width: var(--river-w);
+  height: var(--river-h);
+  border-bottom-width: 2px;
+}
+.river .tile-glyph {
+  font-size: 0.95rem;
+}
+.river .tile-rank {
+  font-size: 0.48rem;
+}
+.river .tile-suit {
+  font-size: 0.36rem;
+}
+.river .tile-corner {
+  top: 1px;
+  right: 2px;
+}
+
+/* Keep each river in the middle of its own side so the four corners stay empty
+   and a west discard cannot slide under a north one. */
+.river-north,
+.river-south {
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(var(--river-w) * 6 + 10px);
+  justify-content: flex-start;
+}
+.river-north {
+  top: 28%;
+}
+.river-south {
+  bottom: 28%;
+  align-content: flex-end;
+}
+.river-east,
+.river-west {
+  top: 50%;
+  transform: translateY(-50%);
+  height: calc(var(--river-h) * 6 + 10px);
+  width: calc(var(--river-w) * 2 + 4px);
+  flex-direction: column;
+}
+.river-west {
+  left: 28%;
+  align-content: flex-start;
+}
+.river-east {
+  right: 28%;
+  align-content: flex-end;
+}
+
+.river-fresh {
+  animation: river-land 0.32s ease-out;
+}
+.river-claimable {
+  animation: river-land 0.32s ease-out, claim-glow 1.1s ease-in-out infinite 0.32s;
+}
+
+@keyframes river-land {
+  from {
+    transform: scale(1.5);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.6);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes claim-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(217, 119, 6, 0);
+  }
+}
+
+/* ------------------------------------------------------------- the seats */
+
+/* One stack per player: a nameplate, then their rack along that edge of the
+   table. North/south run side to side; east/west run up and down. */
+.seat-stack {
+  position: absolute;
+  display: flex;
+  z-index: 3;
+  pointer-events: none;
+}
+.seat-stack .seat,
+.seat-stack .rack {
+  pointer-events: auto;
+}
+.seat-stack-north {
+  top: 1%;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+.seat-stack-south {
+  bottom: 1%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.seat-stack-east {
+  right: 0.6%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  max-height: 74%;
+}
+.seat-stack-west {
+  left: 0.6%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  max-height: 74%;
+}
+
+.seat {
+  padding: 0.22rem 0.45rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid transparent;
+  width: max-content;
+  max-width: 14rem;
+}
+.seat-current .seat,
+.seat-stack.seat-current .seat {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.35);
+}
+.seat-waiting .seat,
+.seat-stack.seat-waiting .seat {
+  border-color: rgba(217, 119, 6, 0.45);
+}
+.seat-self {
+  background: rgba(0, 0, 0, 0.58);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rack-hand {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1px;
+}
+.rack-north .rack-hand,
+.rack-south .rack-hand {
+  flex-direction: row;
+}
+.rack-east,
+.rack-west {
+  flex-direction: row;
+  align-items: center;
+}
+/* Melds sit toward the centre, so they cannot tuck under the concealed backs. */
+.rack-east {
+  flex-direction: row-reverse;
+}
+.rack-east .rack-hand,
+.rack-west .rack-hand {
+  flex-direction: column;
+  flex: none;
+}
+
+/* End-on tile backs: tall when the rack is horizontal, wide when it stands
+   along the left or right so the hand reads as a real table edge. */
+.rack-north .tile-back,
+.rack-south .tile-back {
+  width: 16px;
+  height: 24px;
+}
+.rack-east .tile-back,
+.rack-west .tile-back {
+  width: 24px;
+  height: 16px;
+}
+
+.rack .melds {
+  position: relative;
+  z-index: 1;
+  gap: 4px;
+  margin: 0;
+  flex-wrap: nowrap;
+  flex: none;
+}
+.rack-east .melds,
+.rack-west .melds {
+  flex-direction: column;
+}
+.rack-east .meld,
+.rack-west .meld {
+  flex-direction: column;
+}
+.rack .meld {
+  padding: 1px;
+}
+.rack .meld .tile {
+  width: 16px;
+  height: 22px;
+}
+.rack-east .meld .tile,
+.rack-west .meld .tile {
+  width: 22px;
+  height: 16px;
+}
+.rack .meld .tile-glyph {
+  font-size: 0.7rem;
+}
+
+/* --------------------------------------------------- tiles in mid-flight */
+
+.flight-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+/* Each flight is a full-size box whose content starts centred on the wall, so
+   a percentage translate reads as a fraction of the table. */
+.flight {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flight-draw {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.3, 0.8, 0.4, 1);
+  animation-fill-mode: both;
+}
+.flight-discard {
+  animation-duration: 0.36s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+}
+
+.flight-draw-south {
+  animation-name: draw-south;
+}
+.flight-draw-north {
+  animation-name: draw-north;
+}
+.flight-draw-east {
+  animation-name: draw-east;
+}
+.flight-draw-west {
+  animation-name: draw-west;
+}
+.flight-discard-south {
+  animation-name: discard-south;
+}
+.flight-discard-north {
+  animation-name: discard-north;
+}
+.flight-discard-east {
+  animation-name: discard-east;
+}
+.flight-discard-west {
+  animation-name: discard-west;
+}
+
+@keyframes draw-south {
+  from {
+    transform: translate(0, 0) scale(0.55);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(0, 50%) scale(1.05);
+    opacity: 0;
+  }
+}
+@keyframes draw-north {
+  from {
+    transform: translate(0, 0) scale(0.55);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(0, -44%) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes draw-east {
+  from {
+    transform: translate(0, 0) scale(0.55);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(40%, 0) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes draw-west {
+  from {
+    transform: translate(0, 0) scale(0.55);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-40%, 0) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes discard-south {
+  from {
+    transform: translate(0, 50%) scale(1.05);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(0, 22%) scale(0.7);
+    opacity: 0;
+  }
+}
+@keyframes discard-north {
+  from {
+    transform: translate(0, -44%) scale(0.9);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(0, -22%) scale(0.7);
+    opacity: 0;
+  }
+}
+@keyframes discard-east {
+  from {
+    transform: translate(40%, 0) scale(0.9);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(22%, 0) scale(0.7);
+    opacity: 0;
+  }
+}
+@keyframes discard-west {
+  from {
+    transform: translate(-40%, 0) scale(0.9);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(-22%, 0) scale(0.7);
+    opacity: 0;
+  }
+}
+
+.seat-header,
+.my-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  margin-bottom: 0;
+  flex-wrap: nowrap;
+}
+.my-header {
+  margin-bottom: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.seat-wind-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.seat-score {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------- my area */
+
+.my-area {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.8rem 0.45rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.my-area-claim {
+  border-color: rgba(217, 119, 6, 0.6);
+  box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.3), 0 -6px 26px rgba(217, 119, 6, 0.12);
+}
+
+.claim-callout {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.3rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(217, 119, 6, 0.14);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+.claim-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.78rem;
+}
+.claim-copy span {
+  opacity: 0.7;
+  font-size: 0.72rem;
+}
+
+.analysis {
+  margin-left: 1rem;
+  font-size: 0.78rem;
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.waits {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.wait-chip {
+  padding: 0.1rem 0.35rem;
+  border-radius: 5px;
+  background: rgba(217, 119, 6, 0.3);
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+.wait-count {
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 0.15rem;
+}
+
+/* ------------------------------------------------------------ action bar */
+
+.action-bar {
+  margin-top: 0.3rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.action-bar-idle {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+.action-reason {
+  font-size: 0.8rem;
+  font-weight: 650;
+  margin-bottom: 0.45rem;
+}
+.action-hint {
+  font-weight: 400;
+  opacity: 0.6;
+}
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.action-buttons .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  text-align: left;
+}
+.action-label {
+  font-size: 0.85rem;
+}
+.action-tai {
+  font-size: 0.66rem;
+  opacity: 0.8;
+}
+.action-warning {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(180, 83, 9, 0.25);
+  border: 1px solid rgba(217, 119, 6, 0.45);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+/* ---------------------------------------------------------------- modals */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 40;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #1a2e22;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 1.4rem;
+  width: 100%;
+  max-width: 34rem;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+.modal-narrow {
+  max-width: 26rem;
+}
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+.modal-sub {
+  margin: -0.4rem 0 0.9rem;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.summary-line {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.8rem;
+}
+.summary-hand {
+  margin-bottom: 0.9rem;
+}
+
+.confirm-rule {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  opacity: 0.85;
+  padding: 0.6rem 0.7rem;
+  background: rgba(180, 83, 9, 0.2);
+  border-radius: 8px;
+}
+
+.tai-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+.tai-table th {
+  text-align: left;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+  padding-bottom: 0.3rem;
+}
+.tai-table td {
+  padding: 0.32rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  vertical-align: top;
+}
+.tai-cn {
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+.tai-en {
+  opacity: 0.65;
+  font-size: 0.78rem;
+}
+.tai-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  width: 5rem;
+}
+.tai-subtotal td {
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  font-weight: 700;
+}
+.tai-capped {
+  font-weight: 400;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.payments h3 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+.payments ul {
+  margin: 0.3rem 0 1rem;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.payment-note {
+  opacity: 0.6;
+  font-size: 0.75rem;
+}
+
+.scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.85rem;
+}
+.score-name {
+  flex: 1;
+  font-weight: 600;
+}
+.score-wind {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  width: 3.5rem;
+}
+.score-delta,
+.score-total {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  width: 4rem;
+  text-align: right;
+}
+.score-delta.pos,
+.score-total.pos {
+  color: #86efac;
+}
+.score-delta.neg,
+.score-total.neg {
+  color: #fca5a5;
+}
+
+.dealer-note {
+  font-size: 0.82rem;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------- log */
+
+.log-panel {
+  flex: 0 0 auto;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: var(--radius);
+  padding: 0.15rem 0.6rem;
+  font-size: 0.72rem;
+}
+.log-panel summary {
+  cursor: pointer;
+  opacity: 0.7;
+  font-weight: 600;
+}
+.log-panel ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  max-height: 10rem;
+  overflow-y: auto;
+  opacity: 0.8;
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .wall-ring {
+    inset: 24%;
+    --wall-depth: 12px;
+  }
+  .river {
+    --river-w: 20px;
+    --river-h: 28px;
+  }
+  .river .tile-glyph {
+    font-size: 0.9rem;
+  }
+  .rack-north .tile-back,
+  .rack-south .tile-back {
+    width: 14px;
+    height: 22px;
+  }
+  .rack-east .tile-back,
+  .rack-west .tile-back {
+    width: 22px;
+    height: 14px;
+  }
+}
+
+/* Flights and pulses are decoration; the table state is always readable
+   without them. */
+@media (prefers-reduced-motion: reduce) {
+  .flight-layer {
+    display: none;
+  }
+  .river-fresh,
+  .river-claimable,
+  .hub-label-hold {
+    animation: none;
+  }
+}

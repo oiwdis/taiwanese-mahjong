@@ -1,0 +1,12 @@
+# Railway named this service @mahjong/client. The UI is not a server —
+# start the monorepo from the repo root so Socket.IO actually listens.
+[build]
+builder = "RAILPACK"
+watchPatterns = ["**"]
+buildCommand = "if [ -f ../package-lock.json ]; then cd ..; fi && npm ci && npm run build"
+
+[deploy]
+startCommand = "if [ -f ../package-lock.json ]; then cd ..; fi && npm start"
+healthcheckPath = "/healthz"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"

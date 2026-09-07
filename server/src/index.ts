@@ -224,6 +224,7 @@ app.get('*', (_req, res) => {
 setInterval(() => rooms.sweep(), 1000 * 60 * 10).unref();
 
 const port = Number(process.env.PORT ?? 3000);
-httpServer.listen(port, () => {
-  console.log(`Taiwanese mahjong server listening on http://localhost:${port}`);
+const host = process.env.HOST ?? '0.0.0.0';
+httpServer.listen(port, host, () => {
+  console.log(`Taiwanese mahjong server listening on http://${host}:${port}`);
 });

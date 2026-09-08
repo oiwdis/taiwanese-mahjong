@@ -685,7 +685,7 @@ input[type='checkbox'] {
 
 .felt-well {
   position: absolute;
-  inset: 27%;
+  inset: 22%;
   border-radius: 10px;
   background: rgba(6, 12, 8, 0.28);
   box-shadow:
@@ -711,7 +711,7 @@ input[type='checkbox'] {
    The ring sits in a middle band: racks stay outside it, rivers stay inside. */
 .wall-ring {
   position: absolute;
-  inset: 23%;
+  inset: 16%;
   --wall-depth: 16px;
   z-index: 0;
 }
@@ -811,7 +811,7 @@ input[type='checkbox'] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 44%;
+  width: 50%;
   aspect-ratio: 1;
   text-align: center;
   z-index: 1;
@@ -933,8 +933,8 @@ input[type='checkbox'] {
 /* Discards sit in front of whoever threw them, six to a line — across for
    north/south, down for east/west — the way they sit on a real table. */
 .river {
-  --river-w: 24px;
-  --river-h: 34px;
+  --river-w: 30px;
+  --river-h: 42px;
   position: absolute;
   display: flex;
   flex-wrap: wrap;
@@ -951,13 +951,13 @@ input[type='checkbox'] {
   border-bottom-width: 2px;
 }
 .river .tile-glyph {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
 }
 .river .tile-rank {
-  font-size: 0.48rem;
+  font-size: 0.56rem;
 }
 .river .tile-suit {
-  font-size: 0.36rem;
+  font-size: 0.4rem;
 }
 .river .tile-corner {
   top: 1px;
@@ -974,10 +974,10 @@ input[type='checkbox'] {
   justify-content: flex-start;
 }
 .river-north {
-  top: 25%;
+  top: 19%;
 }
 .river-south {
-  bottom: 25%;
+  bottom: 19%;
   align-content: flex-end;
 }
 .river-east,
@@ -989,11 +989,11 @@ input[type='checkbox'] {
   flex-direction: column;
 }
 .river-west {
-  left: 25%;
+  left: 19%;
   align-content: flex-start;
 }
 .river-east {
-  right: 25%;
+  right: 19%;
   align-content: flex-end;
 }
 
@@ -1226,33 +1226,33 @@ input[type='checkbox'] {
   padding: 1px;
 }
 .rack .meld .tile {
-  width: 16px;
-  height: 22px;
+  width: 14px;
+  height: 20px;
 }
 .rack-east .meld .tile,
 .rack-west .meld .tile {
-  width: 22px;
-  height: 16px;
+  width: 20px;
+  height: 14px;
 }
 .rack .meld .tile-glyph {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
 }
 
-/* Flowers stay face-up and large enough to read, including on the side racks. */
+/* Flowers stay face-up and readable without crowding the rivers. */
 .rack .meld-flowers .tile,
 .rack-east .meld-flowers .tile,
 .rack-west .meld-flowers .tile {
-  width: 42px;
-  height: 58px;
+  width: 30px;
+  height: 42px;
 }
 .rack .meld-flowers .tile-glyph {
-  font-size: 1.45rem;
+  font-size: 1.1rem;
 }
 .rack .meld-flowers .tile-rank {
-  font-size: 0.62rem;
+  font-size: 0.5rem;
 }
 .rack .meld-flowers .tile-suit {
-  font-size: 0.44rem;
+  font-size: 0.36rem;
 }
 .rack-east .meld-flowers,
 .rack-west .meld-flowers {
@@ -1978,11 +1978,11 @@ input[type='checkbox'] {
   }
 
   .wall-ring {
-    inset: 24%;
+    inset: 17%;
     --wall-depth: 12px;
   }
   .felt-well {
-    inset: 28%;
+    inset: 25%;
   }
   .table-hub {
     width: 40%;
@@ -1990,18 +1990,18 @@ input[type='checkbox'] {
   .rack .meld-flowers .tile,
   .rack-east .meld-flowers .tile,
   .rack-west .meld-flowers .tile {
-    width: 34px;
-    height: 46px;
+    width: 26px;
+    height: 36px;
   }
   .rack .meld-flowers .tile-glyph {
-    font-size: 1.15rem;
+    font-size: 0.95rem;
   }
   .river {
-    --river-w: 20px;
-    --river-h: 28px;
+    --river-w: 24px;
+    --river-h: 34px;
   }
   .river .tile-glyph {
-    font-size: 0.9rem;
+    font-size: 1.05rem;
   }
   .rack-north .tile-back,
   .rack-south .tile-back {

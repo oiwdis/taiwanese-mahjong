@@ -11,6 +11,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const entry = path.resolve(here, '../server/src/index.ts');
 
 if (!existsSync(entry)) {
+  if (existsSync(path.join(here, 'server.bundle.mjs'))) {
+    console.log('Server source is not in this image; keeping the committed bundle.');
+    process.exit(0);
+  }
   console.error(`Cannot bundle the server: ${entry} is missing.`);
   process.exit(1);
 }

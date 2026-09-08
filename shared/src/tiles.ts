@@ -293,6 +293,6 @@ export function totalCount(counts: Counts): number {
   return n;
 }
 
-export function sortTiles(tiles: Tile[]): Tile[] {
+export function sortTiles(tiles: readonly Tile[]): Tile[] {
   return [...tiles].sort((a, b) => a - b);
 }

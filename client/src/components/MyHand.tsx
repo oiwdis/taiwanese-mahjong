@@ -1,6 +1,6 @@
 import type React from 'react';
 import { useRef, useState } from 'react';
-import type { Tile } from '@mahjong/shared';
+import { sortTiles, type Tile } from '@mahjong/shared';
 import { dealKeyOf, moveTile, reconcileHand, sameMultiset } from '../handOrder.js';
 import { TileFace } from './Tile.js';
 
@@ -40,12 +40,12 @@ function useOrderedHand(
   const nextId = useRef(1);
   const [state, setState] = useState(() => ({
     dealKey,
-    tiles: placeTiles(serverHand, nextId),
+    tiles: placeTiles(sortTiles(serverHand), nextId),
   }));
 
   let tiles = state.tiles;
   if (dealKey !== state.dealKey) {
-    tiles = placeTiles(serverHand, nextId);
+    tiles = placeTiles(sortTiles(serverHand), nextId);
     setState({ dealKey, tiles });
   } else if (!sameMultiset(state.tiles.map((p) => p.tile), serverHand)) {
     tiles = adoptOrder(state.tiles, reconcileHand(state.tiles.map((p) => p.tile), serverHand), nextId);

@@ -91,12 +91,12 @@ describe('leaving the table', () => {
 });
 
 describe('your hand', () => {
-  it('starts in the dealt order and can be dragged', () => {
+  it('starts sorted and can be dragged', () => {
     const html = render(view({ hand: parseTiles('9s 1m 5p') }));
     const start = html.indexOf('my-hand');
     const slice = html.slice(start, html.indexOf('action-bar', start));
     const labels = [...slice.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1]);
-    expect(labels).toEqual(['9 Bamboo', '1 Characters', '5 Dots']);
+    expect(labels).toEqual(['1 Characters', '5 Dots', '9 Bamboo']);
     expect(slice).toContain('tile-sortable');
   });
 });
@@ -295,6 +295,7 @@ describe('the claim window is visible', () => {
     expect(html).toContain('The table is holding for you');
     expect(html).toContain('claim-popup');
     expect(html).toContain('my-area-claim');
+    expect(html.indexOf('claim-popup')).toBeLessThan(html.indexOf('my-area-claim'));
   });
 
   it('says who it is waiting on when the choice is not yours', () => {

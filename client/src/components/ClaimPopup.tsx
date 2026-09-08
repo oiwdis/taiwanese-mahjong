@@ -37,10 +37,11 @@ function headline(reason: PendingDecision['reason'], actions: AvailableAction[])
 }
 
 /**
- * Full-screen prompt when a discard (or added gang) can be taken.
+ * Prompt when a discard (or added gang) can be taken.
  *
- * The bottom action bar is easy to miss on a phone. This sits on top of the
- * table with the tile, who threw it, and every legal call including Pass.
+ * Sits over the table only so the hand stays sharp and readable. The bottom
+ * action bar is easy to miss on a phone; this puts the tile, who threw it,
+ * and every legal call including Pass in one place.
  */
 export function ClaimPopup({
   decision,
@@ -60,7 +61,7 @@ export function ClaimPopup({
   const source = view.pendingKong ? 'is adding a gang' : 'discarded';
 
   return (
-    <div className="modal-backdrop claim-popup" role="dialog" aria-modal="true" aria-labelledby="claim-title">
+    <div className="claim-popup" role="dialog" aria-modal="true" aria-labelledby="claim-title">
       <div className="modal modal-narrow claim-popup-card">
         <h2 id="claim-title">{headline(decision.reason, actions)}</h2>
         {tile !== null && (

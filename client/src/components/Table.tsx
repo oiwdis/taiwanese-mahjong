@@ -581,6 +581,10 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
 
           <FlightLayer flights={flights} onDone={clearFlight} />
         </div>
+
+        {claimPopup && decision && (
+          <ClaimPopup decision={decision} view={view} onAct={onAct} />
+        )}
       </div>
 
       <div className={cls('my-area', myClaim && 'my-area-claim')}>
@@ -653,10 +657,6 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
           ))}
         </ul>
       </details>
-
-      {claimPopup && decision && (
-        <ClaimPopup decision={decision} view={view} onAct={onAct} />
-      )}
 
       {confirm && (
         <ConfirmDialog

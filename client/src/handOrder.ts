@@ -1,4 +1,13 @@
-import type { Tile } from '@mahjong/shared';
+import { sortTiles, type Tile } from '@mahjong/shared';
+
+/** Insert `tile` after every tile that sorts at or before it. */
+export function insertSorted(hand: readonly Tile[], tile: Tile): Tile[] {
+  let i = hand.length;
+  while (i > 0 && hand[i - 1]! > tile) i -= 1;
+  const next = [...hand];
+  next.splice(i, 0, tile);
+  return next;
+}
 
 /** Identity of a dealt hand. Changing it resets the local tile order. */
 export function dealKeyOf(view: {
@@ -25,9 +34,10 @@ export function sameMultiset(a: readonly Tile[], b: readonly Tile[]): boolean {
 
 /**
  * Keep the player's arrangement. Tiles that left the hand drop out; newly
- * drawn tiles are appended (so the draw stays on the right until they move it).
+ * drawn tiles slot into sorted order so a pickup sits with its suit/rank.
  */
 export function reconcileHand(previous: readonly Tile[], incoming: readonly Tile[]): Tile[] {
+  if (previous.length === 0) return sortTiles([...incoming]);
   const remaining = [...incoming];
   const kept: Tile[] = [];
   for (const tile of previous) {
@@ -37,7 +47,12 @@ export function reconcileHand(previous: readonly Tile[], incoming: readonly Tile
       remaining.splice(i, 1);
     }
   }
-  return [...kept, ...remaining];
+  remaining.sort((a, b) => a - b);
+  let next = kept;
+  for (const tile of remaining) {
+    next = insertSorted(next, tile);
+  }
+  return next;
 }
 
 export function moveTile<T>(hand: readonly T[], from: number, to: number): T[] {

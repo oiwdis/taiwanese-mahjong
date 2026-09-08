@@ -1,9 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { PlayerView } from '@mahjong/shared';
-import { api, clearSession, loadSession, onView, saveSession, socket } from './socket.js';
+import {
+  api,
+  bindSocketLifecycle,
+  clearSession,
+  loadSession,
+  onView,
+  saveSession,
+  socket,
+} from './socket.js';
 import { Landing, Lobby } from './components/Lobby.js';
 import { Table } from './components/Table.js';
+import { shouldReclaimSeat, shouldShowReconnectBanner } from './reclaim.js';
 import { useServerUpdate } from './useServerUpdate.js';
+
+export { shouldReclaimSeat, shouldShowReconnectBanner } from './reclaim.js';
 
 function UpdateButton({
   applying,
@@ -49,6 +60,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(socket.connected);
+  const [rejoining, setRejoining] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const update = useServerUpdate();
 
@@ -76,22 +88,39 @@ export function App() {
     // effect running, which would leave us waiting for an event that already
     // fired, so re-read the live state here.
     setConnected(socket.connected);
+    const unbind = bindSocketLifecycle();
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
+      unbind();
     };
   }, []);
 
-  // Reclaim a seat after a refresh or a dropped connection.
+  // Reclaim a seat after a refresh or a dropped connection. Do not wait for
+  // `view` to be empty — a transient disconnect keeps the last table on
+  // screen, and skipping joinRoom here is what forced a hard refresh.
   useEffect(() => {
     if (!connected) return;
     const stored = loadSession();
-    if (!stored || view) return;
+    if (!shouldReclaimSeat(connected, stored) || !stored) return;
+
+    let cancelled = false;
+    setRejoining(true);
     void (async () => {
       const res = await api.joinRoom(stored.roomCode, stored.name, stored.token);
-      if ('ok' in res && res.ok === false) clearSession();
+      if (cancelled) return;
+      if ('ok' in res && res.ok === false) {
+        clearSession();
+        setView(null);
+        setError(res.error);
+      }
+      setRejoining(false);
     })();
-  }, [connected, view]);
+    return () => {
+      cancelled = true;
+      setRejoining(false);
+    };
+  }, [connected]);
 
   const create = async (name: string) => {
     setBusy(true);
@@ -127,18 +156,26 @@ export function App() {
     }
   };
 
-  if (!connected) {
-    return (
-      <div className="landing">
-        <div className="landing-card">
-          <p>Connecting to the table…</p>
-          <p className="field-hint">
-            If Railway just finished deploying, tap Update once instead of hard-refreshing.
-          </p>
-          <UpdateButton applying={update.applying} onUpdate={update.apply} primary />
-        </div>
+  const connectingCard = (
+    <div className="landing">
+      <div className="landing-card">
+        <p>{rejoining ? 'Rejoining the table…' : 'Connecting to the table…'}</p>
+        <p className="field-hint">
+          If Railway just finished deploying, tap Update once instead of hard-refreshing.
+        </p>
+        <UpdateButton applying={update.applying} onUpdate={update.apply} primary />
       </div>
-    );
+    </div>
+  );
+
+  // Keep a live table mounted across a blip so the hand and the seat stay put.
+  // Only the first paint (no view yet) uses the full-page connecting card.
+  if (!view && (!connected || rejoining || loadSession())) {
+    return connectingCard;
+  }
+
+  if (!connected && !view) {
+    return connectingCard;
   }
 
   const leaveDialog = confirmLeave && (
@@ -164,6 +201,13 @@ export function App() {
     <UpdateBanner show={update.available} applying={update.applying} onUpdate={update.apply} />
   );
 
+  const reconnectBanner = shouldShowReconnectBanner(connected, rejoining, Boolean(view)) && (
+    <div className="reconnect-banner" role="status">
+      <span className="spin" aria-hidden="true" />
+      <span>{connected ? 'Rejoining the table…' : 'Connection lost — reconnecting…'}</span>
+    </div>
+  );
+
   if (!view) {
     return (
       <>
@@ -184,6 +228,7 @@ export function App() {
     return (
       <>
         {banner}
+        {reconnectBanner}
         <Lobby view={view} onExit={() => setConfirmLeave(true)} />
         {leaveDialog}
       </>
@@ -193,6 +238,7 @@ export function App() {
   return (
     <>
       {banner}
+      {reconnectBanner}
       <Table view={view} onExit={() => setConfirmLeave(true)} />
       {leaveDialog}
     </>

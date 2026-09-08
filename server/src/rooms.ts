@@ -270,6 +270,28 @@ export class RoomManager {
     return this.rooms.get(code.trim().toUpperCase());
   }
 
+  /**
+   * Remap a freshly connected socket onto a seat it already owns.
+   *
+   * Socket.IO hands out a new id after every drop. Without this, the player
+   * looks connected on their screen but the server no longer routes views or
+   * actions to them until they refresh.
+   */
+  restoreHandshake(
+    socketId: string,
+    auth: { roomCode?: string; token?: string; name?: string },
+  ): { room: Room; token: string } | null {
+    const roomCode = auth.roomCode?.trim() ?? '';
+    const token = auth.token?.trim() ?? '';
+    if (!roomCode || !token) return null;
+    const room = this.get(roomCode);
+    if (!room || room.wasKicked(token)) return null;
+    const known = room.game.playerByToken(token);
+    if (!known) return null;
+    room.join(auth.name || known.name, socketId, token);
+    return { room, token };
+  }
+
   close(code: string): void {
     const room = this.rooms.get(code);
     if (!room) return;

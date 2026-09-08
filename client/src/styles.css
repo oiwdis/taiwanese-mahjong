@@ -644,7 +644,7 @@ input[type='checkbox'] {
   display: grid;
   place-items: center;
   /* Gutters so name cards and exposed tiles can sit off the wood rim. */
-  padding: 4.4rem min(6.4rem, 15vw) 0.35rem;
+  padding: 5.2rem min(6.4rem, 15vw) 0.35rem;
   overflow: visible;
   container-type: size;
 }
@@ -1056,7 +1056,7 @@ input[type='checkbox'] {
   position: absolute;
   left: 50%;
   top: 0;
-  transform: translate(calc(-50% + 6.2rem), calc(-100% - 16px));
+  transform: translate(-50%, calc(-100% - 24px));
   padding: 0.16rem 0.4rem 0.16rem 0.16rem;
 }
 .seat-stack-north .seat-avatar {
@@ -1099,12 +1099,12 @@ input[type='checkbox'] {
 .seat-stack-east .seat {
   left: 100%;
   right: auto;
-  margin-left: 20px;
+  margin-left: 36px;
 }
 .seat-stack-west .seat {
   left: auto;
   right: 100%;
-  margin-right: 20px;
+  margin-right: 36px;
 }
 
 .seat {
@@ -1116,7 +1116,7 @@ input[type='checkbox'] {
   background: rgba(0, 0, 0, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: max-content;
-  max-width: 5.2rem;
+  max-width: 8rem;
 }
 .seat-east {
   flex-direction: row-reverse;

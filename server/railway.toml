@@ -1,0 +1,12 @@
+# Railway created a separate @mahjong/server service and only watches this
+# folder, which is why later fixes were skipped.
+[build]
+builder = "RAILPACK"
+watchPatterns = ["**"]
+buildCommand = "if [ -f ../package-lock.json ]; then cd .. && npm ci --ignore-scripts && npm run build && cp client/server.bundle.mjs server/server.bundle.mjs && rm -rf server/dist && cp -R client/dist server/dist; fi"
+
+[deploy]
+startCommand = "node ./start.mjs"
+healthcheckPath = "/healthz"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"

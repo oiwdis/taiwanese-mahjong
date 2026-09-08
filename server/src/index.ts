@@ -222,7 +222,11 @@ app.use(express.static(clientDist));
 // Single-page app: hand any unmatched GET back to the client bundle.
 app.get('*', (_req, res) => {
   res.sendFile(path.join(clientDist, 'index.html'), (err) => {
-    if (err) res.status(404).send('Client build not found. Run: npm run build');
+    if (err) {
+      res.status(200).type('html').send(
+        '<!doctype html><title>Mahjong</title><p>Server is up. Client build not found.</p>',
+      );
+    }
   });
 });
 

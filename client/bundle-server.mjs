@@ -3,7 +3,7 @@
  * has `client/` can still listen on $PORT.
  */
 import * as esbuild from 'esbuild';
-import { existsSync } from 'node:fs';
+import { copyFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,3 +31,6 @@ await esbuild.build({
   },
   logLevel: 'info',
 });
+
+const serverCopy = path.resolve(here, '../server/server.bundle.mjs');
+copyFileSync(path.join(here, 'server.bundle.mjs'), serverCopy);

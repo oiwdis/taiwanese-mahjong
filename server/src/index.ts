@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -7,7 +8,11 @@ import { SEAT_COUNT, sanitizeRules, type PlayerView } from '@mahjong/shared';
 import { RoomManager, type Room } from './rooms.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const clientDist = path.resolve(here, '../../client/dist');
+const clientDist = [
+  path.resolve(here, '../../client/dist'),
+  path.resolve(here, './dist'),
+  path.resolve(here, '../dist'),
+].find((dir) => existsSync(path.join(dir, 'index.html'))) ?? path.resolve(here, './dist');
 
 const app = express();
 const httpServer = createServer(app);

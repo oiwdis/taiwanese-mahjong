@@ -1,6 +1,9 @@
 /**
- * Start the real game server, even when Railway launches this
- * `@mahjong/client` workspace instead of the repo root.
+ * Boot whatever can listen on $PORT.
+ *
+ * Railway's @mahjong/client service often only keeps this folder at runtime.
+ * The build step inlines the engine into server.bundle.mjs so we do not need
+ * tsx or the sibling server/ tree after that.
  */
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -8,18 +11,22 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const clientDir = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(clientDir, '..');
-const entry = path.join(root, 'server/src/index.ts');
+const bundle = path.join(clientDir, 'server.bundle.mjs');
+const source = path.resolve(clientDir, '../server/src/index.ts');
 
-if (!existsSync(entry)) {
-  console.error(
-    `Game server not found at ${entry}. In Railway, set this service's Root Directory to / (empty), not client/.`,
-  );
+const args = existsSync(bundle)
+  ? [bundle]
+  : existsSync(source)
+    ? ['--import', 'tsx', source]
+    : null;
+
+if (!args) {
+  console.error('No server to start. server.bundle.mjs was not built.');
   process.exit(1);
 }
 
-const child = spawn(process.execPath, ['--import', 'tsx', entry], {
-  cwd: root,
+const child = spawn(process.execPath, args, {
+  cwd: existsSync(bundle) ? clientDir : path.resolve(clientDir, '..'),
   stdio: 'inherit',
   env: process.env,
 });

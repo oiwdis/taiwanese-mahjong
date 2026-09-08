@@ -91,13 +91,17 @@ function Melds({
   player,
   size = 'xs',
   revealConcealed = false,
+  includeFlowers = true,
 }: {
   player: PublicPlayer;
   size?: 'xs' | 'sm';
   /** The owner may see which tile an 暗槓 is. Everyone else sees backs. */
   revealConcealed?: boolean;
+  /** Your own flowers sit beside the hand instead. */
+  includeFlowers?: boolean;
 }) {
-  if (player.melds.length === 0 && player.flowers.length === 0) return null;
+  const flowers = includeFlowers ? player.flowers : [];
+  if (player.melds.length === 0 && flowers.length === 0) return null;
   return (
     <div className="melds">
       {player.melds.map((meld, i) => (
@@ -113,9 +117,9 @@ function Melds({
               )}
         </div>
       ))}
-      {player.flowers.length > 0 && (
+      {flowers.length > 0 && (
         <div className="meld meld-flowers">
-          {player.flowers.map((t, i) => (
+          {flowers.map((t, i) => (
             <TileFace key={i} tile={t} size={size} />
           ))}
         </div>
@@ -181,6 +185,7 @@ function SeatPlate({
 }) {
   const isCurrent = view.currentSeat === player.seat;
   const isWaiting = view.waitingOn.includes(player.seat);
+  const away = !player.isBot && !player.connected;
 
   return (
     <div
@@ -190,35 +195,47 @@ function SeatPlate({
         self && 'seat-stack-self',
         isCurrent && 'seat-current',
         isWaiting && 'seat-waiting',
+        away && 'seat-away',
       )}
     >
-      <div className={cls('seat', `seat-${pos}`, self && 'seat-self')}>
-        <div className="seat-header">
-          <span className="seat-wind-badge">{WIND_CHINESE[player.seatWind]}</span>
-          <span className="seat-name">
-            {player.name}
-            {self && ' (you)'}
-          </span>
-          {player.isDealer && <span className="tag dealer">莊</span>}
-          {player.isBot && <span className="tag">bot</span>}
-          {!player.isBot && !player.connected && <span className="tag warn">away</span>}
-          {player.passedWater && (
-            <span className="tag warn" title="過水 — cannot win until they pass a hand">
-              過水
+      <div className={cls('seat', `seat-${pos}`, self && 'seat-self', away && 'seat-away')}>
+        <span
+          className={cls('seat-avatar', player.isDealer && 'seat-avatar-dealer')}
+          aria-hidden="true"
+        >
+          {away ? '—' : WIND_CHINESE[player.seatWind]}
+        </span>
+        <div className="seat-body">
+          <div className="seat-header">
+            <span className="seat-wind-badge">{WIND_CHINESE[player.seatWind]}</span>
+            <span className="seat-name">
+              {player.name}
+              {self && ' (you)'}
             </span>
+            {player.isDealer && <span className="tag dealer">莊</span>}
+            {player.isBot && <span className="tag">bot</span>}
+            {away && <span className="tag warn">away</span>}
+            {player.passedWater && (
+              <span className="tag warn" title="過水 — cannot win until they pass a hand">
+                過水
+              </span>
+            )}
+            {isWaiting && <span className="tag thinking">thinking…</span>}
+          </div>
+          <div className="seat-chips">
+            <span className="seat-coin" aria-hidden="true" />
+            <span className="seat-score">{player.score}</span>
+          </div>
+          {canReplace && onReplace && (
+            <button
+              type="button"
+              className="btn btn-tiny replace-bot"
+              onClick={() => onReplace(player.seat)}
+            >
+              Replace with bot
+            </button>
           )}
-          {isWaiting && <span className="tag thinking">thinking…</span>}
-          <span className="seat-score">{player.score}</span>
         </div>
-        {canReplace && onReplace && (
-          <button
-            type="button"
-            className="btn btn-tiny replace-bot"
-            onClick={() => onReplace(player.seat)}
-          >
-            Replace with bot
-          </button>
-        )}
       </div>
 
       {!self && (
@@ -236,6 +253,52 @@ function SeatPlate({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Square wind unit in the well of the table.
+ *
+ * Each face shows the seat wind of whoever sits on that edge (you are always
+ * south on screen). The current player lights up so the table reads like the
+ * commercial boards without leaving our green-and-gold palette.
+ */
+function WindCompass({
+  view,
+  faces,
+}: {
+  view: PlayerView;
+  faces: Partial<Record<Pos, PublicPlayer>>;
+}) {
+  return (
+    <div
+      className="wind-compass"
+      aria-label={`Round wind ${WIND_NAMES[view.roundWind]}`}
+    >
+      {RING_SIDES.map((pos) => {
+        const player = faces[pos];
+        if (!player) return null;
+        const isTurn = view.currentSeat === player.seat;
+        return (
+          <div
+            key={pos}
+            className={cls(
+              'compass-face',
+              `compass-${pos}`,
+              isTurn && 'compass-turn',
+              player.isDealer && 'compass-dealer',
+            )}
+          >
+            <span className="compass-cn">{WIND_CHINESE[player.seatWind]}</span>
+            <span className="compass-en">{WIND_NAMES[player.seatWind][0]}</span>
+          </div>
+        );
+      })}
+      <div className="compass-core">
+        <span className="compass-round-cn">{WIND_CHINESE[view.roundWind]}</span>
+        <span className="compass-round-en">{WIND_NAMES[view.roundWind]}</span>
+      </div>
     </div>
   );
 }
@@ -551,6 +614,7 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
       <div className="table-felt">
         <div className={cls('round-table', claimOpen && 'round-table-claiming')}>
           <div className="felt-circle" />
+          <div className="felt-well" aria-hidden="true" />
           <WallRing view={view} />
 
           {view.players.map((p) => (
@@ -564,35 +628,41 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
           ))}
 
           <div className="table-hub">
-            {view.pendingKong ? (
-              <>
-                <span className="hub-label">
-                  {view.players[view.pendingKong.seat]?.name} is adding a gang
-                </span>
-                <TileFace tile={view.pendingKong.tile} size="sm" highlight />
-                <span className="hub-note">Rob it, or let it stand</span>
-              </>
-            ) : claimOpen ? (
-              <>
-                <span className="hub-label hub-label-hold">Claim window</span>
-                <span className="hub-note">
-                  {myClaim
-                    ? 'Your call — take it or pass'
-                    : claimNames.length > 0
-                      ? `waiting on ${claimNames.join(', ')}`
-                      : 'resolving…'}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="hub-label">
-                  {view.currentSeat === view.you
-                    ? 'Your turn'
-                    : `${view.players[view.currentSeat]?.name}\u2019s turn`}
-                </span>
-                <span className="hub-note">{view.liveWallRemaining} draws left</span>
-              </>
-            )}
+            <WindCompass
+              view={view}
+              faces={{ north, east, south: me, west }}
+            />
+            <div className="hub-banner">
+              {view.pendingKong ? (
+                <>
+                  <span className="hub-label">
+                    {view.players[view.pendingKong.seat]?.name} is adding a gang
+                  </span>
+                  <TileFace tile={view.pendingKong.tile} size="sm" highlight />
+                  <span className="hub-note">Rob it, or let it stand</span>
+                </>
+              ) : claimOpen ? (
+                <>
+                  <span className="hub-label hub-label-hold">Claim window</span>
+                  <span className="hub-note">
+                    {myClaim
+                      ? 'Your call — take it or pass'
+                      : claimNames.length > 0
+                        ? `waiting on ${claimNames.join(', ')}`
+                        : 'resolving…'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="hub-label">
+                    {view.currentSeat === view.you
+                      ? 'Your turn'
+                      : `${view.players[view.currentSeat]?.name}\u2019s turn`}
+                  </span>
+                  <span className="hub-note">{view.liveWallRemaining} draws left</span>
+                </>
+              )}
+            </div>
           </div>
 
           {north && (
@@ -635,6 +705,9 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
       <div className={cls('my-area', myClaim && 'my-area-claim')}>
         {me && (
           <div className="my-header">
+            <span className="seat-avatar" aria-hidden="true">
+              {WIND_CHINESE[me.seatWind]}
+            </span>
             <span className="seat-wind-badge">{WIND_CHINESE[me.seatWind]}</span>
             <span className="seat-name">{me.name} (you)</span>
             {me.isDealer && <span className="tag dealer">莊</span>}
@@ -643,7 +716,10 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
                 過水
               </span>
             )}
-            <span className="seat-score">{me.score}</span>
+            <span className="seat-chips">
+              <span className="seat-coin" aria-hidden="true" />
+              <span className="seat-score">{me.score}</span>
+            </span>
 
             {view.analysis && (
               <span className="analysis">
@@ -672,14 +748,23 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
           </div>
         )}
 
-        {me && <Melds player={me} size="sm" revealConcealed />}
+        {me && <Melds player={me} size="sm" revealConcealed includeFlowers={false} />}
 
-        <MyHand
-          view={view}
-          canDiscard={Boolean(decision?.canDiscard)}
-          discardable={decision?.discardable ?? []}
-          onDiscard={onTileClick}
-        />
+        <div className="my-tray">
+          <MyHand
+            view={view}
+            canDiscard={Boolean(decision?.canDiscard)}
+            discardable={decision?.discardable ?? []}
+            onDiscard={onTileClick}
+          />
+          {me && me.flowers.length > 0 && (
+            <div className="my-flowers" aria-label="Flowers">
+              {me.flowers.map((t, i) => (
+                <TileFace key={`${t}-${i}`} tile={t} size="sm" />
+              ))}
+            </div>
+          )}
+        </div>
 
         {decision && !claimPopup && <ActionBar decision={decision} onAct={onAct} />}
         {!decision && view.phase !== 'handOver' && (

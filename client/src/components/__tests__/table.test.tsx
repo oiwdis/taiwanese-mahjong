@@ -193,6 +193,14 @@ describe('discards land in front of their owner', () => {
     expect(south).not.toContain('tile-back');
   });
 
+  it('puts a wind compass in the table well', () => {
+    const html = render(view());
+    expect(html).toContain('wind-compass');
+    expect(html).toContain('compass-south');
+    expect(html).toContain('compass-turn');
+    expect(html).toContain('felt-well');
+  });
+
   it('lays opponent racks along the table edges', () => {
     const html = render(view());
     expect(html).toContain('rack-north');

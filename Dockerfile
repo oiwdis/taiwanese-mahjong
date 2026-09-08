@@ -8,7 +8,9 @@ COPY shared/package.json shared/
 COPY server/package.json server/
 COPY client/package.json client/
 
-RUN npm ci
+# Only package.json files exist in this layer. Ignore lifecycle scripts so a
+# client postinstall cannot fail before COPY . . brings the rest of the tree.
+RUN npm ci --ignore-scripts
 
 COPY . .
 RUN npm run build

@@ -7,8 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build && node ./bundle-server.mjs",
     "preview": "node ./run-server.mjs",
-    "start": "node ./server.bundle.mjs",
-    "postinstall": "node ./hijack-vite.mjs"
+    "start": "node ./server.bundle.mjs"
   },
   "dependencies": {
     "@mahjong/shared": "*",

@@ -20,6 +20,10 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: { origin: process.env.CORS_ORIGIN ?? '*' },
+  // Phones miss a ping when the tab is backgrounded; a short timeout looks
+  // like a drop and used to leave the player needing a refresh.
+  pingInterval: 20_000,
+  pingTimeout: 60_000,
 });
 
 const rooms = new RoomManager((socketId, view: PlayerView) => {
@@ -68,6 +72,17 @@ function handler<F extends (...args: never[]) => unknown>(name: string, fn: F): 
 }
 
 io.on('connection', (socket) => {
+  const auth = socket.handshake.auth ?? {};
+  const restored = rooms.restoreHandshake(socket.id, {
+    roomCode: typeof auth.roomCode === 'string' ? auth.roomCode : undefined,
+    token: typeof auth.token === 'string' ? auth.token : undefined,
+    name: typeof auth.name === 'string' ? auth.name : undefined,
+  });
+  if (restored) {
+    sessions.set(socket.id, { roomCode: restored.room.code, token: restored.token });
+    restored.room.broadcast();
+  }
+
   socket.on('createRoom', handler('createRoom', (payload, ack) => {
     const name = String(payload?.name ?? '').slice(0, 20) || 'Player';
     const room = rooms.create();

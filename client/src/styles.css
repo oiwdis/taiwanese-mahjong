@@ -643,8 +643,8 @@ input[type='checkbox'] {
   min-width: 0;
   display: grid;
   place-items: center;
-  /* Gutters so exposed flowers and sets can sit off the wood rim. */
-  padding: 2.6rem 2.8rem 0.35rem;
+  /* Gutters so name cards and exposed tiles can sit off the wood rim. */
+  padding: 4.4rem min(6.4rem, 15vw) 0.35rem;
   overflow: visible;
   container-type: size;
 }
@@ -1044,14 +1044,19 @@ input[type='checkbox'] {
   pointer-events: auto;
 }
 .seat-stack-north {
-  top: 0.4%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: none;
   flex-direction: column;
   align-items: center;
   gap: 0.2rem;
 }
 .seat-stack-north .seat {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(calc(-50% + 6.2rem), calc(-100% - 16px));
   padding: 0.16rem 0.4rem 0.16rem 0.16rem;
 }
 .seat-stack-north .seat-avatar {
@@ -1060,9 +1065,8 @@ input[type='checkbox'] {
   font-size: 0.8rem;
 }
 .seat-stack-south {
-  bottom: 1%;
-  left: 50%;
-  transform: translateX(-50%);
+  /* The local name lives in the hand tray; keep this plate off the felt. */
+  display: none;
 }
 .seat-stack-east {
   right: 0.6%;
@@ -1093,10 +1097,14 @@ input[type='checkbox'] {
   transform: translateY(-50%);
 }
 .seat-stack-east .seat {
-  right: 0;
+  left: 100%;
+  right: auto;
+  margin-left: 20px;
 }
 .seat-stack-west .seat {
-  left: 0;
+  left: auto;
+  right: 100%;
+  margin-right: 20px;
 }
 
 .seat {
@@ -1253,19 +1261,25 @@ input[type='checkbox'] {
   position: absolute;
   left: 50%;
   top: 0;
-  transform: translate(-50%, calc(-100% - 16px));
+  transform: translate(-50%, calc(-100% - 12px));
 }
 .seat-stack-west .melds {
   position: absolute;
-  top: 50%;
-  left: 0;
-  transform: translate(calc(-100% - 22px), -50%);
+  left: auto;
+  right: 100%;
+  top: auto;
+  bottom: calc(50% + 2.8rem);
+  margin-right: 20px;
+  transform: none;
 }
 .seat-stack-east .melds {
   position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translate(calc(100% + 22px), -50%);
+  left: 100%;
+  right: auto;
+  top: auto;
+  bottom: calc(50% + 2.8rem);
+  margin-left: 20px;
+  transform: none;
 }
 .rack-east .meld,
 .rack-west .meld {

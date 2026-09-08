@@ -1,12 +1,12 @@
-# This service is @mahjong/client. Build the UI and a bundled copy of the
-# game server, then listen on $PORT.
+# This service is @mahjong/client. The dashboard start command still wins
+# on new Railway projects; keep Railpack + a prebuilt listener.
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+builder = "RAILPACK"
+buildCommand = "echo 'using committed dist and server.bundle.mjs'"
 watchPatterns = ["**"]
 
 [deploy]
-startCommand = "node ./server.bundle.mjs"
+startCommand = "node server.bundle.mjs"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

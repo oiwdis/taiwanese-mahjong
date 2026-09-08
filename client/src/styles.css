@@ -641,9 +641,8 @@ input[type='checkbox'] {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   padding: 0;
   container-type: size;
 }
@@ -652,18 +651,18 @@ input[type='checkbox'] {
 
 .round-table {
   position: relative;
-  /* Fill the leftover felt as a square, never larger than the box. */
+  /* A centred square: same inset on every side so wall, rivers, and hub share a centre. */
   width: auto;
   height: 100%;
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 1;
   flex: none;
-  /* Three bands: racks outside the wall, rivers between wall and hub. */
-  --wall-inset: 24%;
-  --river-inset: 28%;
+  --wall-inset: 26%;
+  --wall-depth: 16px;
   --hub-size: 28%;
-  --well-inset: 36%;
+  --well-inset: calc((100% - var(--hub-size)) / 2);
+  --river-inset: calc(var(--wall-inset) + var(--wall-depth) + 6px);
 }
 @supports (width: 1cqh) {
   .round-table {
@@ -717,7 +716,6 @@ input[type='checkbox'] {
 .wall-ring {
   position: absolute;
   inset: var(--wall-inset);
-  --wall-depth: 16px;
   z-index: 0;
 }
 
@@ -827,8 +825,8 @@ input[type='checkbox'] {
   position: absolute;
   inset: 8%;
   display: grid;
-  grid-template-columns: 1fr 1.15fr 1fr;
-  grid-template-rows: 1fr 1.15fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
   background: linear-gradient(180deg, #2a3330 0%, #171d1b 100%);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1065,21 +1063,37 @@ input[type='checkbox'] {
 }
 .seat-stack-east {
   right: 0.6%;
-  top: 2%;
+  top: var(--wall-inset);
+  bottom: var(--wall-inset);
   transform: none;
   flex-direction: column;
   align-items: flex-end;
+  justify-content: center;
   gap: 0.3rem;
-  max-height: 70%;
+  max-height: none;
 }
 .seat-stack-west {
   left: 0.6%;
-  top: 2%;
+  top: var(--wall-inset);
+  bottom: var(--wall-inset);
   transform: none;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: center;
   gap: 0.3rem;
-  max-height: 70%;
+  max-height: none;
+}
+.seat-stack-east .seat,
+.seat-stack-west .seat {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.seat-stack-east .seat {
+  right: 0;
+}
+.seat-stack-west .seat {
+  left: 0;
 }
 
 .seat {
@@ -1091,7 +1105,7 @@ input[type='checkbox'] {
   background: rgba(0, 0, 0, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: max-content;
-  max-width: 7.25rem;
+  max-width: 5.2rem;
 }
 .seat-east {
   flex-direction: row-reverse;
@@ -1450,6 +1464,7 @@ input[type='checkbox'] {
 .my-header {
   margin-bottom: 0.2rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 .my-header .seat-avatar {
   width: 1.7rem;
@@ -1996,12 +2011,8 @@ input[type='checkbox'] {
 
   .round-table {
     --wall-inset: 24%;
-    --river-inset: 28%;
-    --hub-size: 26%;
-    --well-inset: 36%;
-  }
-  .wall-ring {
     --wall-depth: 12px;
+    --hub-size: 26%;
   }
   .rack .meld-flowers .tile,
   .rack-east .meld-flowers .tile,
@@ -2031,7 +2042,7 @@ input[type='checkbox'] {
   }
 
   .seat {
-    max-width: 7.5rem;
+    max-width: 5rem;
   }
   .hub-label {
     font-size: 0.72rem;

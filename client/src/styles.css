@@ -643,7 +643,9 @@ input[type='checkbox'] {
   min-width: 0;
   display: grid;
   place-items: center;
-  padding: 0;
+  /* Gutters so exposed flowers and sets can sit off the wood rim. */
+  padding: 2.6rem 2.8rem 0.35rem;
+  overflow: visible;
   container-type: size;
 }
 
@@ -658,6 +660,7 @@ input[type='checkbox'] {
   max-height: 100%;
   aspect-ratio: 1;
   flex: none;
+  overflow: visible;
   --wall-inset: 26%;
   --wall-depth: 16px;
   --hub-size: 28%;
@@ -1241,13 +1244,28 @@ input[type='checkbox'] {
 .rack-north .melds {
   flex-direction: row;
 }
-.rack-north .meld-flowers .tile {
-  width: 22px;
-  height: 30px;
-}
 .rack-east .melds,
 .rack-west .melds {
   flex-direction: column;
+}
+/* Exposed flowers and sets sit off the felt so they cannot cover the wall. */
+.seat-stack-north .melds {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, calc(-100% - 16px));
+}
+.seat-stack-west .melds {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(calc(-100% - 22px), -50%);
+}
+.seat-stack-east .melds {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(calc(100% + 22px), -50%);
 }
 .rack-east .meld,
 .rack-west .meld {
@@ -1256,32 +1274,26 @@ input[type='checkbox'] {
 .rack .meld {
   padding: 1px;
 }
-.rack .meld .tile {
-  width: 14px;
-  height: 20px;
-}
-.rack-east .meld .tile,
-.rack-west .meld .tile {
-  width: 20px;
-  height: 14px;
-}
-.rack .meld .tile-glyph {
-  font-size: 0.62rem;
-}
 
-/* Flowers stay face-up and readable without crowding the rivers. */
+/* Sets of 3 use the same face size as flowers so they stay readable. */
+.rack .meld .tile,
+.rack-east .meld .tile,
+.rack-west .meld .tile,
 .rack .meld-flowers .tile,
 .rack-east .meld-flowers .tile,
 .rack-west .meld-flowers .tile {
   width: 26px;
   height: 36px;
 }
+.rack .meld .tile-glyph,
 .rack .meld-flowers .tile-glyph {
   font-size: 1rem;
 }
+.rack .meld .tile-rank,
 .rack .meld-flowers .tile-rank {
   font-size: 0.46rem;
 }
+.rack .meld .tile-suit,
 .rack .meld-flowers .tile-suit {
   font-size: 0.34rem;
 }
@@ -2014,12 +2026,16 @@ input[type='checkbox'] {
     --wall-depth: 12px;
     --hub-size: 26%;
   }
+  .rack .meld .tile,
+  .rack-east .meld .tile,
+  .rack-west .meld .tile,
   .rack .meld-flowers .tile,
   .rack-east .meld-flowers .tile,
   .rack-west .meld-flowers .tile {
     width: 22px;
     height: 30px;
   }
+  .rack .meld .tile-glyph,
   .rack .meld-flowers .tile-glyph {
     font-size: 0.85rem;
   }

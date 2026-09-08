@@ -6,7 +6,7 @@ watchPatterns = ["**"]
 buildCommand = "if [ -f ../package-lock.json ]; then cd ..; fi && npm ci && npm run build -w @mahjong/client"
 
 [deploy]
-startCommand = "if [ -f client/run-server.mjs ]; then node client/run-server.mjs; else node ./run-server.mjs; fi"
+startCommand = "node ./server.bundle.mjs"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

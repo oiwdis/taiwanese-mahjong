@@ -597,6 +597,14 @@ export class Game {
     return { ok: true };
   }
 
+  /** A dropped seat must not hold the table on the Next-hand prompt. */
+  markDisconnected(seat: number): void {
+    const player = this.players[seat];
+    if (!player) return;
+    player.connected = false;
+    if (this.phase === 'handOver') this.readyForNextHand(seat);
+  }
+
   // -------------------------------------------------------------------------
   // Window resolution
   // -------------------------------------------------------------------------
@@ -663,7 +671,7 @@ export class Game {
           fromSeat: discarderSeat,
           claimedTile: tile,
         });
-        this.pushLog(`${claimer.name} called chow on ${cornerLabelOf(tile)}`);
+        this.pushLog(`${claimer.name} called chi on ${cornerLabelOf(tile)}`);
         this.beginTurnDecision(top.seat, { allowWin: false, postCall: true });
         return;
       }
@@ -676,7 +684,7 @@ export class Game {
           fromSeat: discarderSeat,
           claimedTile: tile,
         });
-        this.pushLog(`${claimer.name} called pung on ${cornerLabelOf(tile)}`);
+        this.pushLog(`${claimer.name} called pong on ${cornerLabelOf(tile)}`);
         this.beginTurnDecision(top.seat, { allowWin: false, postCall: true });
         return;
       }
@@ -693,9 +701,9 @@ export class Game {
         });
         if (wasWaiting) {
           claimer.passedWater = true;
-          this.pushLog(`${claimer.name} konged while waiting and is now 過水`);
+          this.pushLog(`${claimer.name} ganged while waiting and is now 過水`);
         }
-        this.pushLog(`${claimer.name} called kong on ${cornerLabelOf(tile)}`);
+        this.pushLog(`${claimer.name} called gang on ${cornerLabelOf(tile)}`);
         this.drawReplacementFor(top.seat);
         return;
       }
@@ -713,7 +721,7 @@ export class Game {
         const player = this.players[seat]!;
         player.passedWater = true;
         player.clearPassedWaterOnDiscard = false;
-        this.pushLog(`${player.name} declined to rob the kong and is now 過水`);
+        this.pushLog(`${player.name} declined to rob the gang and is now 過水`);
       }
     }
 
@@ -721,7 +729,7 @@ export class Game {
 
     if (winning.length > 0 && winning[0]!.action.type === 'win') {
       const robber = winning[0]!.seat;
-      this.pushLog(`${this.players[robber]!.name} robbed the kong`);
+      this.pushLog(`${this.players[robber]!.name} robbed the gang`);
       this.declareDiscardWin(robber, kong.seat, kong.tile, { robbingKong: true });
       return;
     }
@@ -737,7 +745,7 @@ export class Game {
     const player = this.players[seat]!;
     player.concealed[tile]! -= 4;
     player.melds.push({ kind: 'kong', tile, concealed: true });
-    this.pushLog(`${player.name} declared a concealed kong of ${cornerLabelOf(tile)}`);
+    this.pushLog(`${player.name} declared a concealed gang`);
     this.clearDecisions();
     this.drawReplacementFor(seat);
   }
@@ -748,7 +756,7 @@ export class Game {
     if (this.rules.addedKongClearsPassedWater && player.passedWater) {
       player.clearPassedWaterOnDiscard = true;
     }
-    this.pushLog(`${player.name} added to their pung of ${cornerLabelOf(tile)}`);
+    this.pushLog(`${player.name} added to their pong of ${cornerLabelOf(tile)}`);
     this.openRobbingWindow(seat, tile);
   }
 
@@ -979,7 +987,9 @@ export class Game {
 
   private maybeAdvanceHand(): void {
     if (this.phase !== 'handOver' || !this.result) return;
-    if (!this.players.every((p) => p.readyForNext)) return;
+    // Bots and dropped seats never need to press the button. A human who
+    // disconnects after the summary appears used to leave everyone stuck.
+    if (!this.players.every((p) => p.readyForNext || p.isBot || !p.connected)) return;
 
     const result = this.result;
     if (result.dealerContinues) {
@@ -1032,6 +1042,8 @@ export class Game {
         if (m.kind === 'chow') {
           if (tile >= m.tile && tile <= m.tile + 2) seen++;
         } else if (m.tile === tile) {
+          // Other seats' 暗槓 stay unknown, so they do not shrink wait counts.
+          if (m.concealed && p.seat !== seat) continue;
           seen += m.kind === 'kong' ? 4 : 3;
         }
       }
@@ -1047,13 +1059,19 @@ export class Game {
       connected: p.connected,
       score: p.score,
       concealedCount: totalCount(p.concealed),
-      melds: p.melds,
+      melds: p.melds.map((m) => {
+        const showTile =
+          p.seat === seat || this.phase === 'handOver' || this.phase === 'gameOver';
+        if (m.concealed && !showTile) return { ...m, tile: -1 as Tile };
+        return m;
+      }),
       flowers: p.flowers,
       discards: p.discards,
       seatWind: this.seatWindOf(p.seat),
       isDealer: p.seat === this.dealerSeat,
       passedWater: p.passedWater,
       thinking: this.waitingSeats().includes(p.seat),
+      readyForNext: p.readyForNext,
     }));
 
     const me = seat === null ? null : this.players[seat] ?? null;

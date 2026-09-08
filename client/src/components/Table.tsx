@@ -14,7 +14,9 @@ import {
 import { api } from '../socket.js';
 import { TileBack, TileFace } from './Tile.js';
 import { ActionBar } from './ActionBar.js';
+import { ClaimPopup } from './ClaimPopup.js';
 import { HandSummary } from './HandSummary.js';
+import { MyHand } from './MyHand.js';
 
 type Confirm =
   | { kind: 'action'; action: AvailableAction }
@@ -84,19 +86,30 @@ function WallRing({ view }: { view: PlayerView }) {
   );
 }
 
-function Melds({ player, size = 'xs' }: { player: PublicPlayer; size?: 'xs' | 'sm' }) {
+function Melds({
+  player,
+  size = 'xs',
+  revealConcealed = false,
+}: {
+  player: PublicPlayer;
+  size?: 'xs' | 'sm';
+  /** The owner may see which tile an 暗槓 is. Everyone else sees backs. */
+  revealConcealed?: boolean;
+}) {
   if (player.melds.length === 0 && player.flowers.length === 0) return null;
   return (
     <div className="melds">
       {player.melds.map((meld, i) => (
         <div key={i} className={`meld ${meld.concealed ? 'meld-concealed' : ''}`}>
-          {meldTiles(meld).map((t, j) =>
-            meld.concealed && j > 0 && j < 3 ? (
-              <TileBack key={j} size={size} />
-            ) : (
-              <TileFace key={j} tile={t} size={size} />
-            ),
-          )}
+          {meld.concealed && !revealConcealed
+            ? [0, 1, 2, 3].map((j) => <TileBack key={j} size={size} />)
+            : meldTiles(meld).map((t, j) =>
+                meld.concealed && j > 0 && j < 3 ? (
+                  <TileBack key={j} size={size} />
+                ) : (
+                  <TileFace key={j} tile={t} size={size} />
+                ),
+              )}
         </div>
       ))}
       {player.flowers.length > 0 && (
@@ -203,7 +216,10 @@ function SeatPlate({
               <TileBack key={i} size="xs" />
             ))}
           </div>
-          <Melds player={player} />
+          <Melds
+            player={player}
+            revealConcealed={view.phase === 'handOver' || view.phase === 'gameOver'}
+          />
         </div>
       )}
     </div>
@@ -378,7 +394,7 @@ function FlightLayer({
   );
 }
 
-export function Table({ view }: { view: PlayerView }) {
+export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void }) {
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -458,6 +474,8 @@ export function Table({ view }: { view: PlayerView }) {
   // decides whether to take the discard.
   const claimOpen = view.phase === 'claiming' || view.phase === 'robbing';
   const myClaim = claimOpen && decision !== null && decision.reason !== 'turn';
+  const claimPopup =
+    decision !== null && (decision.reason === 'claim' || decision.reason === 'robbing');
   const claimNames = view.waitingOn
     .filter((s) => s !== view.you)
     .map((s) => view.players[s]?.name)
@@ -502,6 +520,11 @@ export function Table({ view }: { view: PlayerView }) {
           <span className="header-label">Table</span>
           <span className="header-value">{view.roomCode}</span>
         </div>
+        {onExit && (
+          <button type="button" className="btn btn-tiny exit-game" onClick={onExit}>
+            Exit game
+          </button>
+        )}
       </header>
 
       <div className="table-felt">
@@ -523,7 +546,7 @@ export function Table({ view }: { view: PlayerView }) {
             {view.pendingKong ? (
               <>
                 <span className="hub-label">
-                  {view.players[view.pendingKong.seat]?.name} is adding a kong
+                  {view.players[view.pendingKong.seat]?.name} is adding a gang
                 </span>
                 <TileFace tile={view.pendingKong.tile} size="sm" highlight />
                 <span className="hub-note">Rob it, or let it stand</span>
@@ -561,18 +584,6 @@ export function Table({ view }: { view: PlayerView }) {
       </div>
 
       <div className={cls('my-area', myClaim && 'my-area-claim')}>
-        {myClaim && view.lastDiscard && (
-          <div className="claim-callout">
-            <TileFace tile={view.lastDiscard.tile} size="sm" highlight />
-            <div className="claim-copy">
-              <strong>
-                {view.players[view.lastDiscard.seat]?.name} discarded{' '}
-                {englishNameOf(view.lastDiscard.tile)}
-              </strong>
-              <span>The table is holding for you. Take it or pass.</span>
-            </div>
-          </div>
-        )}
         {me && (
           <div className="my-header">
             <span className="seat-wind-badge">{WIND_CHINESE[me.seatWind]}</span>
@@ -612,22 +623,16 @@ export function Table({ view }: { view: PlayerView }) {
           </div>
         )}
 
-        {me && <Melds player={me} size="sm" />}
+        {me && <Melds player={me} size="sm" revealConcealed />}
 
-        <div className="my-hand">
-          {view.hand.map((t, i) => (
-            <TileFace
-              key={`${t}-${i}`}
-              tile={t}
-              size="lg"
-              highlight={view.drawnTile === t && i === view.hand.lastIndexOf(t)}
-              dim={Boolean(decision?.canDiscard) && !decision?.discardable.includes(t)}
-              onClick={decision?.canDiscard ? () => onTileClick(t) : undefined}
-            />
-          ))}
-        </div>
+        <MyHand
+          view={view}
+          canDiscard={Boolean(decision?.canDiscard)}
+          discardable={decision?.discardable ?? []}
+          onDiscard={onTileClick}
+        />
 
-        {decision && <ActionBar decision={decision} onAct={onAct} />}
+        {decision && !claimPopup && <ActionBar decision={decision} onAct={onAct} />}
         {!decision && view.phase !== 'handOver' && (
           <div className="action-bar action-bar-idle">
             Waiting on{' '}
@@ -648,6 +653,10 @@ export function Table({ view }: { view: PlayerView }) {
           ))}
         </ul>
       </details>
+
+      {claimPopup && decision && (
+        <ClaimPopup decision={decision} view={view} onAct={onAct} />
+      )}
 
       {confirm && (
         <ConfirmDialog

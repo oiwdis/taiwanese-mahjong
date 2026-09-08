@@ -22,6 +22,8 @@ export default defineConfig({
         target: 'http://localhost:3000',
         ws: true,
       },
+      '/version': { target: 'http://localhost:3000' },
+      '/healthz': { target: 'http://localhost:3000' },
     },
   },
   preview: {

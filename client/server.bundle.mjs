@@ -20798,7 +20798,7 @@ var require_send = __commonJS({
         });
       }
     };
-    SendStream.prototype.sendIndex = function sendIndex(path3) {
+    SendStream.prototype.sendIndex = function sendIndex2(path3) {
       var i = -1;
       var self = this;
       function next(err) {
@@ -37295,7 +37295,7 @@ var require_dist2 = __commonJS({
 
 // ../server/src/index.ts
 var import_express = __toESM(require_express2(), 1);
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -37726,7 +37726,7 @@ var TAI_INFO = {
     chinese: "\u9580\u6E05",
     pinyin: "m\xE9n q\u012Bng",
     english: "Fully concealed",
-    note: "No chow, pung or exposed kong. A concealed kong is still allowed."
+    note: "No chi, pong or exposed gang. A concealed gang is still allowed."
   },
   concealedSelfDraw: {
     key: "concealedSelfDraw",
@@ -37740,21 +37740,21 @@ var TAI_INFO = {
     chinese: "\u5708\u98A8",
     pinyin: "qu\u0101n f\u0113ng",
     english: "Round wind",
-    note: "A pung or kong of the prevailing round wind."
+    note: "A pong or gang of the prevailing round wind."
   },
   seatWind: {
     key: "seatWind",
     chinese: "\u9580\u98A8",
     pinyin: "m\xE9n f\u0113ng",
     english: "Seat wind",
-    note: "A pung or kong of your own seat wind."
+    note: "A pong or gang of your own seat wind."
   },
   dragonPung: {
     key: "dragonPung",
     chinese: "\u4E09\u5143\u724C",
     pinyin: "s\u0101n yu\xE1n p\xE1i",
-    english: "Dragon pung",
-    note: "One tai per pung or kong of \u4E2D, \u767C or \u767D, for any player."
+    english: "Dragon pong",
+    note: "One tai per pong or gang of \u4E2D, \u767C or \u767D, for any player."
   },
   ownFlower: {
     key: "ownFlower",
@@ -37788,15 +37788,15 @@ var TAI_INFO = {
     key: "robbingKong",
     chinese: "\u6436\u69D3",
     pinyin: "qi\u01CEng g\xE0ng",
-    english: "Robbing a kong",
-    note: "Won on the tile another player added to their pung. They pay as the discarder."
+    english: "Robbing a gang",
+    note: "Won on the tile another player added to their pong. They pay as the discarder."
   },
   kongReplacement: {
     key: "kongReplacement",
     chinese: "\u69D3\u4E0A\u958B\u82B1",
     pinyin: "g\xE0ng sh\xE0ng k\u0101i hu\u0101",
-    english: "Win on kong replacement",
-    note: "Self-drew the winning tile as a replacement after a kong or a flower."
+    english: "Win on gang replacement",
+    note: "Self-drew the winning tile as a replacement after a gang or a flower."
   },
   lastDiscard: {
     key: "lastDiscard",
@@ -37816,29 +37816,29 @@ var TAI_INFO = {
     key: "allChows",
     chinese: "\u5E73\u80E1",
     pinyin: "p\xEDng h\xFA",
-    english: "All chows",
+    english: "All chi",
     note: "No flowers, no honors, no triplets, a two-sided wait, and not self-drawn."
   },
   threeConcealedPungs: {
     key: "threeConcealedPungs",
     chinese: "\u4E09\u6697\u523B",
     pinyin: "s\u0101n \xE0n k\xE8",
-    english: "Three concealed pungs",
-    note: "Three triplets formed without calling pung."
+    english: "Three concealed pongs",
+    note: "Three triplets formed without calling pong."
   },
   fourConcealedPungs: {
     key: "fourConcealedPungs",
     chinese: "\u56DB\u6697\u523B",
     pinyin: "s\xEC \xE0n k\xE8",
-    english: "Four concealed pungs",
+    english: "Four concealed pongs",
     note: "Does not stack with \u4E09\u6697\u523B."
   },
   fiveConcealedPungs: {
     key: "fiveConcealedPungs",
     chinese: "\u4E94\u6697\u523B",
     pinyin: "w\u01D4 \xE0n k\xE8",
-    english: "Five concealed pungs",
-    note: "Does not stack with any other concealed-pung tai."
+    english: "Five concealed pongs",
+    note: "Does not stack with any other concealed-pong tai."
   },
   allMelded: {
     key: "allMelded",
@@ -37858,8 +37858,8 @@ var TAI_INFO = {
     key: "allPungs",
     chinese: "\u78B0\u78B0\u80E1",
     pinyin: "p\xE8ng p\xE8ng h\xFA",
-    english: "All pungs",
-    note: "Five triplets or kongs plus a pair, with no runs."
+    english: "All pongs",
+    note: "Five triplets or gangs plus a pair, with no runs."
   },
   mixedOneSuit: {
     key: "mixedOneSuit",
@@ -37880,28 +37880,28 @@ var TAI_INFO = {
     chinese: "\u5C0F\u4E09\u5143",
     pinyin: "xi\u01CEo s\u0101n yu\xE1n",
     english: "Small three dragons",
-    note: "Two dragon pungs plus the third dragon as the pair. Suppresses \u4E09\u5143\u724C."
+    note: "Two dragon pongs plus the third dragon as the pair. Suppresses \u4E09\u5143\u724C."
   },
   greatThreeDragons: {
     key: "greatThreeDragons",
     chinese: "\u5927\u4E09\u5143",
     pinyin: "d\xE0 s\u0101n yu\xE1n",
     english: "Great three dragons",
-    note: "Pungs of all three dragons. Suppresses \u4E09\u5143\u724C."
+    note: "Pongs of all three dragons. Suppresses \u4E09\u5143\u724C."
   },
   smallFourWinds: {
     key: "smallFourWinds",
     chinese: "\u5C0F\u56DB\u559C",
     pinyin: "xi\u01CEo s\xEC x\u01D0",
     english: "Small four winds",
-    note: "Three wind pungs plus the fourth wind as the pair. Wind tai still stack."
+    note: "Three wind pongs plus the fourth wind as the pair. Wind tai still stack."
   },
   greatFourWinds: {
     key: "greatFourWinds",
     chinese: "\u5927\u56DB\u559C",
     pinyin: "d\xE0 s\xEC x\u01D0",
     english: "Big four winds",
-    note: "Pungs of all four winds. Suppresses \u5708\u98A8 and \u9580\u98A8."
+    note: "Pongs of all four winds. Suppresses \u5708\u98A8 and \u9580\u98A8."
   },
   allHonors: {
     key: "allHonors",
@@ -38281,7 +38281,7 @@ var WIND_NAMES = ["East", "South", "West", "North"];
 
 // ../shared/src/actions.ts
 function chowLabel(low) {
-  return `Chow ${cornerLabelOf(low)}-${cornerLabelOf(low + 1)}-${cornerLabelOf(low + 2)}`;
+  return `Chi ${cornerLabelOf(low)}-${cornerLabelOf(low + 1)}-${cornerLabelOf(low + 2)}`;
 }
 function previewWin(player, winningTile, selfDraw, ctx) {
   const concealed = [...player.concealed];
@@ -38334,7 +38334,7 @@ function buildClaimActions(player, tile, fromSeat, ctx) {
       type: "kong",
       tile,
       uses: [tile, tile, tile],
-      label: `Kong ${cornerLabelOf(tile)}`
+      label: `Gang ${cornerLabelOf(tile)}`
     });
   }
   if (held >= 2) {
@@ -38343,7 +38343,7 @@ function buildClaimActions(player, tile, fromSeat, ctx) {
       type: "pung",
       tile,
       uses: [tile, tile],
-      label: `Pung ${cornerLabelOf(tile)}`
+      label: `Pong ${cornerLabelOf(tile)}`
     });
   }
   if (seatDistance(fromSeat, player.seat) === 1) {
@@ -38386,7 +38386,7 @@ function buildRobbingActions(player, tile, ctx) {
       type: "win",
       tile,
       taiPreview: tai,
-      label: `Rob the kong on ${englishNameOf(tile)} \u2014 ${tai} tai`
+      label: `Rob the gang on ${englishNameOf(tile)} \u2014 ${tai} tai`
     },
     {
       id: "pass",
@@ -38433,7 +38433,7 @@ function buildTurnActions(args) {
         type: "concealedKong",
         tile: t,
         uses: [t, t, t, t],
-        label: `Concealed kong ${cornerLabelOf(t)}`
+        label: `Concealed gang ${cornerLabelOf(t)}`
       });
     }
   }
@@ -38445,7 +38445,7 @@ function buildTurnActions(args) {
       type: "addedKong",
       tile: meld.tile,
       uses: [meld.tile],
-      label: `Add to pung \u2014 kong ${cornerLabelOf(meld.tile)}`
+      label: `Add to pong \u2014 gang ${cornerLabelOf(meld.tile)}`
     });
   }
   return actions;
@@ -38494,6 +38494,25 @@ function canResolveEarly(declarations, pending) {
 // ../shared/src/protocol.ts
 var ROOM_CODE_LENGTH = 4;
 var ROOM_CODE_ALPHABET = "ACDEFGHJKLMNPQRSTUVWXY345789";
+
+// ../server/src/build.ts
+function resolveBuildId(env = process.env) {
+  return env.RAILWAY_DEPLOYMENT_ID || env.RAILWAY_GIT_COMMIT_SHA || env.BUILD_ID || `boot-${Math.floor(Date.now() / 1e3)}`;
+}
+var BUILD_ID = resolveBuildId();
+function htmlWithBuildId(html, buildId) {
+  const safe = buildId.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  const tag = `<meta name="build-id" content="${safe}" />`;
+  if (/<meta\s+name="build-id"/i.test(html)) {
+    return html.replace(/<meta\s+name="build-id"[^>]*>/i, tag);
+  }
+  if (html.includes("</head>")) return html.replace("</head>", `    ${tag}
+  </head>`);
+  return `${tag}
+${html}`;
+}
+var HTML_NO_STORE = "no-store, no-cache, must-revalidate";
+var ASSET_CACHE = "public, max-age=31536000, immutable";
 
 // ../server/src/rooms.ts
 import { randomUUID } from "node:crypto";
@@ -38909,6 +38928,13 @@ var Game = class {
     this.maybeAdvanceHand();
     return { ok: true };
   }
+  /** A dropped seat must not hold the table on the Next-hand prompt. */
+  markDisconnected(seat) {
+    const player = this.players[seat];
+    if (!player) return;
+    player.connected = false;
+    if (this.phase === "handOver") this.readyForNextHand(seat);
+  }
   // -------------------------------------------------------------------------
   // Window resolution
   // -------------------------------------------------------------------------
@@ -38964,7 +38990,7 @@ var Game = class {
           fromSeat: discarderSeat,
           claimedTile: tile
         });
-        this.pushLog(`${claimer.name} called chow on ${cornerLabelOf(tile)}`);
+        this.pushLog(`${claimer.name} called chi on ${cornerLabelOf(tile)}`);
         this.beginTurnDecision(top.seat, { allowWin: false, postCall: true });
         return;
       }
@@ -38977,7 +39003,7 @@ var Game = class {
           fromSeat: discarderSeat,
           claimedTile: tile
         });
-        this.pushLog(`${claimer.name} called pung on ${cornerLabelOf(tile)}`);
+        this.pushLog(`${claimer.name} called pong on ${cornerLabelOf(tile)}`);
         this.beginTurnDecision(top.seat, { allowWin: false, postCall: true });
         return;
       }
@@ -38993,9 +39019,9 @@ var Game = class {
         });
         if (wasWaiting) {
           claimer.passedWater = true;
-          this.pushLog(`${claimer.name} konged while waiting and is now \u904E\u6C34`);
+          this.pushLog(`${claimer.name} ganged while waiting and is now \u904E\u6C34`);
         }
-        this.pushLog(`${claimer.name} called kong on ${cornerLabelOf(tile)}`);
+        this.pushLog(`${claimer.name} called gang on ${cornerLabelOf(tile)}`);
         this.drawReplacementFor(top.seat);
         return;
       }
@@ -39011,13 +39037,13 @@ var Game = class {
         const player = this.players[seat];
         player.passedWater = true;
         player.clearPassedWaterOnDiscard = false;
-        this.pushLog(`${player.name} declined to rob the kong and is now \u904E\u6C34`);
+        this.pushLog(`${player.name} declined to rob the gang and is now \u904E\u6C34`);
       }
     }
     this.clearDecisions();
     if (winning.length > 0 && winning[0].action.type === "win") {
       const robber = winning[0].seat;
-      this.pushLog(`${this.players[robber].name} robbed the kong`);
+      this.pushLog(`${this.players[robber].name} robbed the gang`);
       this.declareDiscardWin(robber, kong.seat, kong.tile, { robbingKong: true });
       return;
     }
@@ -39030,7 +39056,7 @@ var Game = class {
     const player = this.players[seat];
     player.concealed[tile] -= 4;
     player.melds.push({ kind: "kong", tile, concealed: true });
-    this.pushLog(`${player.name} declared a concealed kong of ${cornerLabelOf(tile)}`);
+    this.pushLog(`${player.name} declared a concealed gang`);
     this.clearDecisions();
     this.drawReplacementFor(seat);
   }
@@ -39040,7 +39066,7 @@ var Game = class {
     if (this.rules.addedKongClearsPassedWater && player.passedWater) {
       player.clearPassedWaterOnDiscard = true;
     }
-    this.pushLog(`${player.name} added to their pung of ${cornerLabelOf(tile)}`);
+    this.pushLog(`${player.name} added to their pong of ${cornerLabelOf(tile)}`);
     this.openRobbingWindow(seat, tile);
   }
   completeAddedKong(seat, tile) {
@@ -39226,7 +39252,7 @@ var Game = class {
   }
   maybeAdvanceHand() {
     if (this.phase !== "handOver" || !this.result) return;
-    if (!this.players.every((p) => p.readyForNext)) return;
+    if (!this.players.every((p) => p.readyForNext || p.isBot || !p.connected)) return;
     const result = this.result;
     if (result.dealerContinues) {
       const advances = result.kind === "win" || this.rules.drawAdvancesStreak;
@@ -39271,6 +39297,7 @@ var Game = class {
         if (m.kind === "chow") {
           if (tile >= m.tile && tile <= m.tile + 2) seen++;
         } else if (m.tile === tile) {
+          if (m.concealed && p.seat !== seat) continue;
           seen += m.kind === "kong" ? 4 : 3;
         }
       }
@@ -39285,13 +39312,18 @@ var Game = class {
       connected: p.connected,
       score: p.score,
       concealedCount: totalCount(p.concealed),
-      melds: p.melds,
+      melds: p.melds.map((m) => {
+        const showTile = p.seat === seat || this.phase === "handOver" || this.phase === "gameOver";
+        if (m.concealed && !showTile) return { ...m, tile: -1 };
+        return m;
+      }),
       flowers: p.flowers,
       discards: p.discards,
       seatWind: this.seatWindOf(p.seat),
       isDealer: p.seat === this.dealerSeat,
       passedWater: p.passedWater,
-      thinking: this.waitingSeats().includes(p.seat)
+      thinking: this.waitingSeats().includes(p.seat),
+      readyForNext: p.readyForNext
     }));
     const me = seat === null ? null : this.players[seat] ?? null;
     const decision = seat === null ? void 0 : this.decisionFor(seat);
@@ -39432,6 +39464,7 @@ var Room = class {
   createdAt = Date.now();
   /** token -> socket id, for the connected humans. */
   connections = /* @__PURE__ */ new Map();
+  kickedTokens = /* @__PURE__ */ new Set();
   botTimers = /* @__PURE__ */ new Map();
   emit;
   constructor(code, emit) {
@@ -39458,6 +39491,30 @@ var Room = class {
   // -------------------------------------------------------------------------
   // Membership
   // -------------------------------------------------------------------------
+  wasKicked(token) {
+    return this.kickedTokens.has(token);
+  }
+  /**
+   * Host removes a seated player from the lobby.
+   *
+   * Humans and bots both go through this path. Mid-game kicks are refused
+   * because a 16-tile hand cannot lose a seat without breaking the deal.
+   */
+  kick(seat) {
+    if (this.game.phase !== "lobby") {
+      return { ok: false, error: "You can only kick people from the lobby" };
+    }
+    const player = this.game.players[seat];
+    if (!player) return { ok: false, error: "Nobody in that seat" };
+    if (player.token === this.hostToken) {
+      return { ok: false, error: "You cannot kick yourself" };
+    }
+    const socketId = this.connections.get(player.token) ?? null;
+    this.connections.delete(player.token);
+    this.kickedTokens.add(player.token);
+    this.game.removePlayer(seat);
+    return { ok: true, socketId, name: player.name, token: player.token };
+  }
   join(name, socketId, token) {
     if (token) {
       const existing = this.game.playerByToken(token);
@@ -39483,7 +39540,7 @@ var Room = class {
       if (id !== socketId) continue;
       this.connections.delete(token);
       const player = this.game.playerByToken(token);
-      if (player) player.connected = false;
+      if (player) this.game.markDisconnected(player.seat);
     }
   }
   addBot() {
@@ -39496,8 +39553,7 @@ var Room = class {
   removeBot(seat) {
     const player = this.game.players[seat];
     if (!player || !player.isBot) return false;
-    this.game.removePlayer(seat);
-    return true;
+    return this.kick(seat).ok;
   }
   fillWithBots() {
     while (!this.isFull) this.addBot();
@@ -39664,6 +39720,10 @@ io2.on("connection", (socket) => {
       return;
     }
     const name = String(payload?.name ?? "").slice(0, 20) || "Player";
+    if (payload?.token && room.wasKicked(String(payload.token))) {
+      ack(fail("The host removed you from this table."));
+      return;
+    }
     const known = payload?.token ? room.game.playerByToken(payload.token) : void 0;
     if (!known && room.isFull && room.game.phase !== "lobby") {
       ack(fail("That table is full and already playing"));
@@ -39707,6 +39767,23 @@ io2.on("connection", (socket) => {
     if (!found) return ack?.(fail("Not in a room"));
     if (!found.room.isHost(found.session.token)) return ack?.(fail("Only the host can remove bots"));
     if (!found.room.removeBot(Number(payload?.seat))) return ack?.(fail("That seat is not a bot"));
+    found.room.broadcast();
+    ack?.({ ok: true });
+  }));
+  socket.on("kick", handler("kick", (payload, ack) => {
+    const found = sessionRoom(socket.id);
+    if (!found) return ack?.(fail("Not in a room"));
+    if (!found.room.isHost(found.session.token)) {
+      return ack?.(fail("Only the host can kick people"));
+    }
+    const res = found.room.kick(Number(payload?.seat));
+    if (!res.ok) return ack?.(fail(res.error));
+    if (res.socketId) {
+      io2.to(res.socketId).emit("kicked", {
+        reason: "The host removed you from the table."
+      });
+      sessions.delete(res.socketId);
+    }
     found.room.broadcast();
     ack?.({ ok: true });
   }));
@@ -39780,18 +39857,42 @@ io2.on("connection", (socket) => {
     sessions.delete(socket.id);
   });
 });
+function sendIndex(res) {
+  res.setHeader("Cache-Control", HTML_NO_STORE);
+  res.setHeader("Pragma", "no-cache");
+  const indexFile = path.join(clientDist, "index.html");
+  if (!existsSync(indexFile)) {
+    res.status(200).type("html").send(
+      "<!doctype html><title>Mahjong</title><p>Server is up. Client build not found.</p>"
+    );
+    return;
+  }
+  res.type("html").send(htmlWithBuildId(readFileSync(indexFile, "utf8"), BUILD_ID));
+}
 app.get("/healthz", (_req, res) => {
-  res.json({ ok: true, rooms: rooms.size });
+  res.setHeader("Cache-Control", HTML_NO_STORE);
+  res.json({ ok: true, rooms: rooms.size, build: BUILD_ID });
 });
-app.use(import_express.default.static(clientDist));
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(clientDist, "index.html"), (err) => {
-    if (err) {
-      res.status(200).type("html").send(
-        "<!doctype html><title>Mahjong</title><p>Server is up. Client build not found.</p>"
-      );
+app.get("/version", (_req, res) => {
+  res.setHeader("Cache-Control", HTML_NO_STORE);
+  res.json({ ok: true, build: BUILD_ID });
+});
+app.use(
+  import_express.default.static(clientDist, {
+    index: false,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith(".html")) {
+        res.setHeader("Cache-Control", HTML_NO_STORE);
+      } else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader("Cache-Control", ASSET_CACHE);
+      } else {
+        res.setHeader("Cache-Control", "no-cache");
+      }
     }
-  });
+  })
+);
+app.get("*", (_req, res) => {
+  sendIndex(res);
 });
 setInterval(() => rooms.sweep(), 1e3 * 60 * 10).unref();
 var port = Number(process.env.PORT ?? 3e3);

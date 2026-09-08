@@ -46,6 +46,8 @@ export interface ClientEvents {
   /** Host fills the remaining seats with bots. */
   addBot: (ack: (res: Result<{ ok: true }>) => void) => void;
   removeBot: (payload: { seat: number }, ack: (res: Result<{ ok: true }>) => void) => void;
+  /** Host removes a seated player from the lobby. */
+  kick: (payload: { seat: number }, ack: (res: Result<{ ok: true }>) => void) => void;
 
   /** Host starts a game, from the lobby or straight off a finished one. */
   startGame: (ack: (res: Result<{ ok: true }>) => void) => void;
@@ -76,4 +78,5 @@ export interface ServerEvents {
   /** Transient toast, e.g. "West called pung". */
   notice: (payload: { message: string; kind: 'info' | 'warn' | 'error' }) => void;
   roomClosed: (payload: { reason: string }) => void;
+  kicked: (payload: { reason: string }) => void;
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { WIND_NAMES, cornerLabelOf, type HandResult, type PlayerView } from '@mahjong/shared';
 import { TileFace } from './Tile.js';
 
@@ -12,13 +13,38 @@ export function HandSummary({
 }: {
   view: PlayerView;
   result: HandResult;
-  onNext: () => void;
+  onNext: () => void | Promise<unknown>;
 }) {
   const { rules, players } = view;
   const scored = result.scored;
-  const youReady = view.you !== null && players[view.you]?.name !== undefined;
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const you = view.you !== null ? players[view.you] : undefined;
+  const youReady = Boolean(you?.readyForNext) || pending;
+  const waitingOn = players
+    .filter((p) => !p.isBot && p.connected && !p.readyForNext && p.seat !== view.you)
+    .map((p) => p.name);
 
   const totalTai = scored ? scored.handTai : 0;
+
+  const pressNext = async () => {
+    if (!you || youReady) return;
+    setPending(true);
+    setError(null);
+    try {
+      const res = await onNext();
+      if (res && typeof res === 'object' && 'ok' in res && res.ok === false) {
+        setPending(false);
+        setError('error' in res ? String(res.error) : 'That did not work.');
+      }
+      // On success keep the button locked; the next view either starts the
+      // hand or marks us ready while others catch up.
+    } catch {
+      setPending(false);
+      setError('Could not start the next hand. Try again.');
+    }
+  };
 
   return (
     <div className="modal-backdrop">
@@ -135,9 +161,24 @@ export function HandSummary({
             : 'The deal passes to the next player.'}
         </p>
 
-        <button type="button" className="btn btn-primary" onClick={onNext} disabled={!youReady}>
-          Next hand
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => void pressNext()}
+          disabled={!you || youReady}
+        >
+          {!you
+            ? 'Waiting for the table'
+            : youReady
+              ? waitingOn.length > 0
+                ? `Waiting on ${waitingOn.join(', ')}`
+                : 'Starting…'
+              : 'Next hand'}
         </button>
+        {youReady && waitingOn.length > 0 && (
+          <p className="field-hint">The next hand starts when everyone is ready.</p>
+        )}
+        {error && <p className="error">{error}</p>}
       </div>
     </div>
   );

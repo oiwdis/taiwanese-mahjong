@@ -66,7 +66,7 @@ export interface AvailableAction {
   uses?: Tile[];
   /** What the hand would score, shown on win actions before you commit. */
   taiPreview?: number;
-  /** Short label for the button, e.g. "Chow 3-4-5p". */
+  /** Short label for the button, e.g. "Chi 3-4-5p". */
   label: string;
   /**
    * True on a `pass` action that gives up a win, which arms 過水 and locks you
@@ -124,6 +124,8 @@ export interface PublicPlayer {
   passedWater: boolean;
   /** True while the server is waiting for this player to choose. */
   thinking: boolean;
+  /** True after they press Next hand (or are a bot / dropped seat). */
+  readyForNext: boolean;
 }
 
 export interface HandResult {

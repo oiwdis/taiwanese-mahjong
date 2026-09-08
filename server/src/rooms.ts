@@ -25,6 +25,7 @@ export class Room {
 
   /** token -> socket id, for the connected humans. */
   private connections = new Map<string, string>();
+  private kickedTokens = new Set<string>();
   private botTimers = new Map<number, NodeJS.Timeout>();
   private emit: (socketId: string, view: PlayerView) => void;
 
@@ -59,6 +60,34 @@ export class Room {
   // Membership
   // -------------------------------------------------------------------------
 
+  wasKicked(token: string): boolean {
+    return this.kickedTokens.has(token);
+  }
+
+  /**
+   * Host removes a seated player from the lobby.
+   *
+   * Humans and bots both go through this path. Mid-game kicks are refused
+   * because a 16-tile hand cannot lose a seat without breaking the deal.
+   */
+  kick(seat: number):
+    | { ok: true; socketId: string | null; name: string; token: string }
+    | { ok: false; error: string } {
+    if (this.game.phase !== 'lobby') {
+      return { ok: false, error: 'You can only kick people from the lobby' };
+    }
+    const player = this.game.players[seat];
+    if (!player) return { ok: false, error: 'Nobody in that seat' };
+    if (player.token === this.hostToken) {
+      return { ok: false, error: 'You cannot kick yourself' };
+    }
+    const socketId = this.connections.get(player.token) ?? null;
+    this.connections.delete(player.token);
+    this.kickedTokens.add(player.token);
+    this.game.removePlayer(seat);
+    return { ok: true, socketId, name: player.name, token: player.token };
+  }
+
   join(name: string, socketId: string, token?: string): { token: string; seat: number | null } {
     // Reclaim an existing seat when the token is recognised.
     if (token) {
@@ -89,7 +118,7 @@ export class Room {
       if (id !== socketId) continue;
       this.connections.delete(token);
       const player = this.game.playerByToken(token);
-      if (player) player.connected = false;
+      if (player) this.game.markDisconnected(player.seat);
     }
   }
 
@@ -104,8 +133,7 @@ export class Room {
   removeBot(seat: number): boolean {
     const player = this.game.players[seat];
     if (!player || !player.isBot) return false;
-    this.game.removePlayer(seat);
-    return true;
+    return this.kick(seat).ok;
   }
 
   fillWithBots(): void {

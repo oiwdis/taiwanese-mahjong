@@ -7,7 +7,14 @@
  */
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_RULES, parseTiles, type PlayerView, type PublicPlayer } from '@mahjong/shared';
+import {
+  DEFAULT_RULES,
+  parseTiles,
+  type HandResult,
+  type PlayerView,
+  type PublicPlayer,
+} from '@mahjong/shared';
+import { HandSummary } from '../HandSummary.js';
 
 // Importing the table pulls in the socket module, which opens a connection on
 // import. Nothing here sends anything, so stub it out.
@@ -33,6 +40,7 @@ function player(seat: number, over: Partial<PublicPlayer> = {}): PublicPlayer {
     isDealer: seat === 0,
     passedWater: false,
     thinking: false,
+    readyForNext: false,
     ...over,
   };
 }
@@ -74,6 +82,24 @@ function count(html: string, needle: string): number {
 function render(v: PlayerView): string {
   return renderToStaticMarkup(<Table view={v} />);
 }
+
+describe('leaving the table', () => {
+  it('shows Exit game when an exit handler is provided', () => {
+    const html = renderToStaticMarkup(<Table view={view()} onExit={() => {}} />);
+    expect(html).toContain('Exit game');
+  });
+});
+
+describe('your hand', () => {
+  it('starts in the dealt order and can be dragged', () => {
+    const html = render(view({ hand: parseTiles('9s 1m 5p') }));
+    const start = html.indexOf('my-hand');
+    const slice = html.slice(start, html.indexOf('action-bar', start));
+    const labels = [...slice.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1]);
+    expect(labels).toEqual(['9 Bamboo', '1 Characters', '5 Dots']);
+    expect(slice).toContain('tile-sortable');
+  });
+});
 
 describe('the wall on the table', () => {
   it('is four sides of 18 stacks, two tiles high', () => {
@@ -250,7 +276,7 @@ describe('the claim window is visible', () => {
         decision: {
           reason: 'claim',
           actions: [
-            { id: `pung:${tile}`, type: 'pung', tile, label: 'Pung 9s' },
+            { id: `pung:${tile}`, type: 'pung', tile, label: 'Pong 9s' },
             { id: 'pass', type: 'pass', label: 'Pass' },
           ],
           canDiscard: false,
@@ -264,9 +290,10 @@ describe('the claim window is visible', () => {
     expect(html).toContain('round-table-claiming');
     expect(html).toContain('river-claimable');
     expect(html).toContain('Claim window');
-    // The choice is spelled out, and passing is always one of the options.
-    expect(html).toContain('Pung 9s');
+    expect(html).toContain('You can pong');
+    expect(html).toContain('Pong 9s');
     expect(html).toContain('The table is holding for you');
+    expect(html).toContain('claim-popup');
     expect(html).toContain('my-area-claim');
   });
 
@@ -282,6 +309,56 @@ describe('the claim window is visible', () => {
     expect(html).not.toContain('round-table-claiming');
     expect(html).toContain('57 draws left');
     expect(html).toContain('P2\u2019s turn');
+  });
+});
+
+describe('concealed gangs', () => {
+  it('shows the tile only to the owner', () => {
+    const tile = parseTiles('5p')[0]!;
+    const gang = { kind: 'kong' as const, tile, concealed: true };
+    const hidden = render(
+      view({
+        you: 0,
+        players: [
+          player(0),
+          player(1, { concealedCount: 12, melds: [gang] }),
+          player(2),
+          player(3),
+        ],
+      }),
+    );
+    const hiddenMeld = hidden.match(/<div class="meld meld-concealed">[\s\S]*?<\/div>/)?.[0] ?? '';
+    expect(hiddenMeld).toContain('tile-back');
+    expect(hiddenMeld).not.toContain('tile-suit-');
+
+    const own = render(
+      view({
+        you: 0,
+        players: [
+          player(0, { concealedCount: 12, melds: [gang] }),
+          player(1),
+          player(2),
+          player(3),
+        ],
+      }),
+    );
+    const ownMeld = own.match(/<div class="meld meld-concealed">[\s\S]*?<\/div>/)?.[0] ?? '';
+    expect(ownMeld).toContain('tile-suit-pin');
+
+    const ended = render(
+      view({
+        you: 0,
+        phase: 'handOver',
+        players: [
+          player(0),
+          player(1, { concealedCount: 12, melds: [gang] }),
+          player(2),
+          player(3),
+        ],
+      }),
+    );
+    const endedMeld = ended.match(/<div class="meld meld-concealed">[\s\S]*?<\/div>/)?.[0] ?? '';
+    expect(endedMeld).toContain('tile-suit-pin');
   });
 });
 
@@ -330,5 +407,41 @@ describe('the game over screen', () => {
     expect(html).not.toContain('New game');
     expect(html).not.toContain('Back to lobby');
     expect(html).toContain('Waiting for P0');
+  });
+});
+
+describe('next hand', () => {
+  const result: HandResult = {
+    kind: 'win',
+    winnerSeat: 0,
+    discarderSeat: 1,
+    winningTile: parseTiles('5p')[0]!,
+    revealedConcealed: [],
+    scored: null,
+    lines: [],
+    deltas: [30, -10, -10, -10],
+    summary: 'P0 won',
+    dealerContinues: true,
+  };
+
+  it('says who it is still waiting on after you are ready', () => {
+    const html = renderToStaticMarkup(
+      <HandSummary
+        view={view({
+          phase: 'handOver',
+          result,
+          players: [
+            player(0, { readyForNext: true }),
+            player(1, { name: 'Sam', isBot: false }),
+            player(2, { isBot: true, readyForNext: true }),
+            player(3, { isBot: true, readyForNext: true }),
+          ],
+        })}
+        result={result}
+        onNext={() => {}}
+      />,
+    );
+    expect(html).toContain('Waiting on Sam');
+    expect(html).toContain('everyone is ready');
   });
 });

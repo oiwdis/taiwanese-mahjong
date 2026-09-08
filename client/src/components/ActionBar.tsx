@@ -4,7 +4,7 @@ const REASON_TEXT: Record<PendingDecision['reason'], string> = {
   turn: 'Your turn',
   postCall: 'You called a set — throw a tile',
   claim: 'Claim the discard?',
-  robbing: 'Rob the kong?',
+  robbing: 'Rob the gang?',
 };
 
 const TYPE_ORDER: Record<string, number> = {
@@ -50,7 +50,7 @@ export function ActionBar({
       <div className="action-reason">
         {REASON_TEXT[decision.reason]}
         {decision.canDiscard && actions.length === 0 && (
-          <span className="action-hint"> — click a tile to discard</span>
+          <span className="action-hint"> — tap a tile to discard</span>
         )}
       </div>
 

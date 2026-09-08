@@ -1,10 +1,11 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import express from 'express';
 import { Server } from 'socket.io';
 import { SEAT_COUNT, sanitizeRules, type PlayerView } from '@mahjong/shared';
+import { ASSET_CACHE, BUILD_ID, HTML_NO_STORE, htmlWithBuildId } from './build.js';
 import { RoomManager, type Room } from './rooms.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -85,6 +86,10 @@ io.on('connection', (socket) => {
       return;
     }
     const name = String(payload?.name ?? '').slice(0, 20) || 'Player';
+    if (payload?.token && room.wasKicked(String(payload.token))) {
+      ack(fail('The host removed you from this table.'));
+      return;
+    }
     const known = payload?.token ? room.game.playerByToken(payload.token) : undefined;
     if (!known && room.isFull && room.game.phase !== 'lobby') {
       ack(fail('That table is full and already playing'));
@@ -132,6 +137,24 @@ io.on('connection', (socket) => {
     if (!found) return ack?.(fail('Not in a room'));
     if (!found.room.isHost(found.session.token)) return ack?.(fail('Only the host can remove bots'));
     if (!found.room.removeBot(Number(payload?.seat))) return ack?.(fail('That seat is not a bot'));
+    found.room.broadcast();
+    ack?.({ ok: true });
+  }));
+
+  socket.on('kick', handler('kick', (payload, ack) => {
+    const found = sessionRoom(socket.id);
+    if (!found) return ack?.(fail('Not in a room'));
+    if (!found.room.isHost(found.session.token)) {
+      return ack?.(fail('Only the host can kick people'));
+    }
+    const res = found.room.kick(Number(payload?.seat));
+    if (!res.ok) return ack?.(fail(res.error));
+    if (res.socketId) {
+      io.to(res.socketId).emit('kicked', {
+        reason: 'The host removed you from the table.',
+      });
+      sessions.delete(res.socketId);
+    }
     found.room.broadcast();
     ack?.({ ok: true });
   }));
@@ -214,20 +237,46 @@ io.on('connection', (socket) => {
   });
 });
 
+function sendIndex(res: express.Response): void {
+  res.setHeader('Cache-Control', HTML_NO_STORE);
+  res.setHeader('Pragma', 'no-cache');
+  const indexFile = path.join(clientDist, 'index.html');
+  if (!existsSync(indexFile)) {
+    res.status(200).type('html').send(
+      '<!doctype html><title>Mahjong</title><p>Server is up. Client build not found.</p>',
+    );
+    return;
+  }
+  res.type('html').send(htmlWithBuildId(readFileSync(indexFile, 'utf8'), BUILD_ID));
+}
+
 app.get('/healthz', (_req, res) => {
-  res.json({ ok: true, rooms: rooms.size });
+  res.setHeader('Cache-Control', HTML_NO_STORE);
+  res.json({ ok: true, rooms: rooms.size, build: BUILD_ID });
 });
 
-app.use(express.static(clientDist));
+app.get('/version', (_req, res) => {
+  res.setHeader('Cache-Control', HTML_NO_STORE);
+  res.json({ ok: true, build: BUILD_ID });
+});
+
+app.use(
+  express.static(clientDist, {
+    index: false,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', HTML_NO_STORE);
+      } else if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader('Cache-Control', ASSET_CACHE);
+      } else {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    },
+  }),
+);
 // Single-page app: hand any unmatched GET back to the client bundle.
 app.get('*', (_req, res) => {
-  res.sendFile(path.join(clientDist, 'index.html'), (err) => {
-    if (err) {
-      res.status(200).type('html').send(
-        '<!doctype html><title>Mahjong</title><p>Server is up. Client build not found.</p>',
-      );
-    }
-  });
+  sendIndex(res);
 });
 
 setInterval(() => rooms.sweep(), 1000 * 60 * 10).unref();

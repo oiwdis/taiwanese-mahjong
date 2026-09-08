@@ -25,6 +25,7 @@ html,
 body,
 #root {
   height: 100%;
+  height: 100dvh;
   margin: 0;
 }
 
@@ -33,6 +34,9 @@ body {
   background: linear-gradient(160deg, #0f2f1c, #08170f 70%);
   color: var(--paper);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior: none;
 }
 
 h1,
@@ -173,9 +177,11 @@ h3 {
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
-.tile-interactive:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+@media (hover: hover) and (pointer: fine) {
+  .tile-interactive:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+  }
 }
 
 .tile-highlight {
@@ -219,6 +225,29 @@ h3 {
   align-items: flex-end;
   justify-content: center;
   flex-wrap: nowrap;
+  user-select: none;
+  touch-action: none;
+}
+
+.tile-sortable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.tile-sortable:active,
+.tile-dragging {
+  cursor: grabbing;
+}
+
+.tile-dragging {
+  z-index: 2;
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+}
+
+.my-hand-sorting .tile-interactive:hover {
+  transform: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .melds {
@@ -262,7 +291,10 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  padding: 2rem 1rem;
+  padding: max(2rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(2rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
 }
 
 .landing-head {
@@ -298,6 +330,7 @@ h3 {
 .join-row {
   display: flex;
   gap: 0.5rem;
+  margin: 0;
 }
 
 .field {
@@ -320,6 +353,7 @@ h3 {
 input,
 select {
   font: inherit;
+  font-size: 1rem;
   padding: 0.5rem 0.6rem;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -403,15 +437,13 @@ input[type='checkbox'] {
   padding: 0.2rem 0.45rem;
 }
 
-.leave {
-  position: fixed;
-  bottom: 0.6rem;
-  left: 0.6rem;
-  opacity: 0.5;
-  z-index: 20;
-}
-.leave:hover {
-  opacity: 1;
+.exit-game {
+  margin-left: auto;
+  flex: none;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(185, 28, 28, 0.28);
+  border-color: rgba(248, 113, 113, 0.45);
 }
 
 /* ------------------------------------------------------------------ lobby */
@@ -419,7 +451,10 @@ input[type='checkbox'] {
 .lobby {
   max-width: 60rem;
   margin: 0 auto;
-  padding: 2rem 1rem 4rem;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(2rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
 }
 
 .lobby-head {
@@ -429,6 +464,12 @@ input[type='checkbox'] {
   gap: 1rem;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
+}
+.lobby-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 .lobby-head p {
   margin: 0;
@@ -550,14 +591,18 @@ input[type='checkbox'] {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 0.35rem 0.5rem 0.4rem;
+  padding: max(0.35rem, env(safe-area-inset-top, 0px))
+    max(0.5rem, env(safe-area-inset-right, 0px))
+    max(0.4rem, env(safe-area-inset-bottom, 0px))
+    max(0.5rem, env(safe-area-inset-left, 0px));
   gap: 0.35rem;
 }
 
 .game-header {
   display: flex;
   gap: 0.9rem;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  align-items: center;
   flex: 0 0 auto;
   padding: 0.28rem 0.7rem;
   background: rgba(0, 0, 0, 0.3);
@@ -1345,6 +1390,38 @@ input[type='checkbox'] {
 .modal-narrow {
   max-width: 26rem;
 }
+
+.claim-popup {
+  background: rgba(0, 0, 0, 0.72);
+}
+.claim-popup-card {
+  text-align: center;
+  border: 2px solid rgba(217, 119, 6, 0.55);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(217, 119, 6, 0.2);
+}
+.claim-popup-card h2 {
+  font-size: 1.45rem;
+}
+.claim-popup-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.4rem 0 0.2rem;
+}
+.claim-popup-tile p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.claim-popup-buttons {
+  justify-content: center;
+  margin-top: 0.4rem;
+}
+.claim-popup-buttons .btn {
+  min-height: 2.75rem;
+  min-width: 7.5rem;
+}
 .modal-actions {
   display: flex;
   gap: 0.6rem;
@@ -1481,6 +1558,46 @@ input[type='checkbox'] {
   line-height: 1.5;
 }
 
+.update-banner {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.85rem;
+  padding: max(0.5rem, env(safe-area-inset-top, 0px)) 0.85rem 0.5rem;
+  background: #b45309;
+  color: #fffbeb;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.update-banner .btn {
+  min-height: 2.4rem;
+  background: #fffbeb;
+  color: #7c2d12;
+  border-color: #fde68a;
+}
+
+.landing-update {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.landing-update .btn {
+  width: 100%;
+  min-height: 2.75rem;
+}
+.landing-update .field-hint {
+  margin-top: 0.4rem;
+  text-align: center;
+}
+
+.landing-card > .field-hint {
+  margin: 0.4rem 0 0.85rem;
+}
+
 /* ------------------------------------------------------------------- log */
 
 .log-panel {
@@ -1505,6 +1622,86 @@ input[type='checkbox'] {
 }
 
 @media (max-width: 720px) {
+  .landing-head h1 {
+    font-size: 1.55rem;
+  }
+
+  .join-row {
+    flex-direction: column;
+  }
+  .join-row .btn {
+    min-height: 2.75rem;
+    width: 100%;
+  }
+
+  .lobby-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .lobby-head-actions {
+    justify-content: space-between;
+  }
+  .lobby-head-actions .exit-game {
+    margin-left: 0;
+    flex: 1;
+  }
+
+  .rules-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .game-header {
+    gap: 0.45rem 0.65rem;
+    padding: 0.3rem 0.5rem;
+  }
+  .header-block {
+    min-width: 0;
+  }
+  .header-sub {
+    display: none;
+  }
+  .game-header .exit-game {
+    margin-left: auto;
+  }
+
+  .my-hand {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+  }
+  .my-hand .tile-lg {
+    width: clamp(30px, calc((100vw - 2rem) / 9), 46px);
+    height: clamp(42px, calc((100vw - 2rem) / 9 * 1.38), 64px);
+  }
+  .my-hand .tile-lg .tile-glyph {
+    font-size: clamp(1.05rem, 4.4vw, 1.55rem);
+  }
+  .my-hand .tile-lg .tile-rank {
+    font-size: 0.68rem;
+  }
+
+  .my-area {
+    padding: 0.35rem 0.5rem 0.4rem;
+  }
+  .analysis {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .action-buttons .btn {
+    min-height: 2.75rem;
+    width: 100%;
+  }
+  .action-buttons .btn-win,
+  .action-buttons .btn-pass,
+  .action-buttons .btn-pass-warn {
+    grid-column: 1 / -1;
+  }
+
   .wall-ring {
     inset: 24%;
     --wall-depth: 12px;
@@ -1525,6 +1722,55 @@ input[type='checkbox'] {
   .rack-west .tile-back {
     width: 22px;
     height: 14px;
+  }
+
+  .seat {
+    max-width: 7.5rem;
+  }
+  .hub-label {
+    font-size: 0.7rem;
+  }
+  .hub-note {
+    font-size: 0.6rem;
+  }
+
+  .modal {
+    max-height: min(88vh, 88dvh);
+    padding: 1.1rem;
+  }
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+  .modal-actions .btn {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+  .claim-popup-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .claim-popup-buttons .btn {
+    width: 100%;
+  }
+
+  .log-panel {
+    display: none;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-header .header-block {
+    display: none;
+  }
+  .log-panel {
+    display: none;
+  }
+  .my-hand {
+    flex-wrap: nowrap;
+  }
+  .my-hand .tile-lg {
+    width: clamp(24px, 4.2vw, 40px);
+    height: clamp(34px, 4.2vw * 1.38, 56px);
   }
 }
 

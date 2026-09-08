@@ -143,7 +143,7 @@ function RulesPanel({
             disabled={!editable}
             onChange={bool('addedKongClearsPassedWater')}
           />
-          An added kong (加槓) counts as the action that clears 過水. Disputed
+          An added gang (加槓) counts as the action that clears 過水. Disputed
           between groups; this is the mainstream reading.
         </label>
 
@@ -196,11 +196,15 @@ export function Landing({
   onJoin,
   error,
   busy,
+  onUpdate,
+  updating,
 }: {
   onCreate: (name: string) => void;
   onJoin: (code: string, name: string) => void;
   error: string | null;
   busy: boolean;
+  onUpdate?: () => void;
+  updating?: boolean;
 }) {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -238,33 +242,50 @@ export function Landing({
 
         <div className="divider">or join with a code</div>
 
-        <div className="join-row">
+        <form
+          className="join-row"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!busy && code.length >= 4) onJoin(code, name);
+          }}
+        >
           <input
             className="code-input"
             value={code}
             maxLength={4}
             placeholder="ABCD"
+            autoComplete="off"
+            enterKeyHint="go"
             onChange={(e) => setCode(e.target.value.toUpperCase())}
           />
           <button
-            type="button"
+            type="submit"
             className="btn"
             disabled={busy || code.length < 4}
-            onClick={() => onJoin(code, name)}
           >
             Join
           </button>
-        </div>
+        </form>
 
         {error && <p className="error">{error}</p>}
+
+        {onUpdate && (
+          <div className="landing-update">
+            <button type="button" className="btn" disabled={busy || updating} onClick={onUpdate}>
+              {updating ? 'Updating…' : 'Update'}
+            </button>
+            <p className="field-hint">Loads the latest Railway deploy in one tap.</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export function Lobby({ view }: { view: PlayerView }) {
+export function Lobby({ view, onExit }: { view: PlayerView; onExit?: () => void }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [kickSeat, setKickSeat] = useState<number | null>(null);
   const isHost = view.you !== null && view.you === view.hostSeat;
   const seatsLeft = SEAT_COUNT - view.players.length;
 
@@ -295,10 +316,17 @@ export function Lobby({ view }: { view: PlayerView }) {
           <h1>Table {view.roomCode}</h1>
           <p>Share this code so others can join.</p>
         </div>
-        <button type="button" className="btn code-badge" onClick={copyCode}>
-          {view.roomCode}
-          <span className="code-copy">{copied ? 'copied' : 'copy'}</span>
-        </button>
+        <div className="lobby-head-actions">
+          <button type="button" className="btn code-badge" onClick={copyCode}>
+            {view.roomCode}
+            <span className="code-copy">{copied ? 'copied' : 'copy'}</span>
+          </button>
+          {onExit && (
+            <button type="button" className="btn exit-game" onClick={onExit}>
+              Exit game
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="lobby-body">
@@ -326,6 +354,15 @@ export function Lobby({ view }: { view: PlayerView }) {
                     onClick={() => void run(() => api.removeBot(p.seat))}
                   >
                     remove
+                  </button>
+                )}
+                {isHost && !p.isBot && p.seat !== view.you && (
+                  <button
+                    type="button"
+                    className="btn btn-tiny"
+                    onClick={() => setKickSeat(p.seat)}
+                  >
+                    Kick
                   </button>
                 )}
               </li>
@@ -370,6 +407,34 @@ export function Lobby({ view }: { view: PlayerView }) {
           onChange={(patch) => void run(() => api.updateRules(patch))}
         />
       </div>
+
+      {kickSeat !== null && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="kick-title">
+          <div className="modal modal-narrow">
+            <h2 id="kick-title">Kick {view.players[kickSeat]?.name ?? 'this player'}?</h2>
+            <p className="confirm-rule">
+              They will leave the table. They cannot rejoin with the same seat
+              unless they come back as a new player.
+            </p>
+            <div className="modal-actions">
+              <button type="button" className="btn" onClick={() => setKickSeat(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-win"
+                onClick={() => {
+                  const seat = kickSeat;
+                  setKickSeat(null);
+                  void run(() => api.kick(seat));
+                }}
+              >
+                Kick
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

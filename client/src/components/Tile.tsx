@@ -1,3 +1,4 @@
+import type React from 'react';
 import { cornerLabelOf, englishNameOf, glyphOf, chineseNameOf, suitOf, type Tile } from '@mahjong/shared';
 
 export type TileSize = 'xs' | 'sm' | 'md' | 'lg';
@@ -16,6 +17,13 @@ export interface TileProps {
   title?: string;
   /** Extra classes, for table placement and animations. */
   className?: string;
+  /** The tile can be dragged to rearrange a hand. */
+  sortable?: boolean;
+  onPointerDown?: React.PointerEventHandler<HTMLButtonElement>;
+  onPointerMove?: React.PointerEventHandler<HTMLButtonElement>;
+  onPointerUp?: React.PointerEventHandler<HTMLButtonElement>;
+  onPointerCancel?: React.PointerEventHandler<HTMLButtonElement>;
+  'data-hand-index'?: number;
 }
 
 /**
@@ -36,10 +44,17 @@ export function TileFace({
   badge,
   title,
   className,
+  sortable,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
+  'data-hand-index': handIndex,
 }: TileProps) {
   const label = cornerLabelOf(tile);
   const suited = /^(\d)([mps])$/.exec(label);
-  const interactive = Boolean(onClick) && !disabled;
+  const enabled = !disabled && (Boolean(onClick) || Boolean(sortable));
+  const interactive = Boolean(onClick) && enabled;
 
   const classes = [
     'tile',
@@ -48,6 +63,7 @@ export function TileFace({
     highlight ? 'tile-highlight' : '',
     dim ? 'tile-dim' : '',
     interactive ? 'tile-interactive' : '',
+    sortable ? 'tile-sortable' : '',
     className ?? '',
   ]
     .filter(Boolean)
@@ -58,7 +74,13 @@ export function TileFace({
       type="button"
       className={classes}
       onClick={interactive ? onClick : undefined}
-      disabled={disabled || !onClick}
+      disabled={!enabled}
+      draggable={false}
+      data-hand-index={handIndex}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       title={title ?? `${englishNameOf(tile)} · ${chineseNameOf(tile)}`}
       aria-label={englishNameOf(tile)}
     >

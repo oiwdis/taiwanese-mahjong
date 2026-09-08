@@ -38,7 +38,7 @@ export interface WinCheckContext {
 }
 
 function chowLabel(low: Tile): string {
-  return `Chow ${cornerLabelOf(low)}-${cornerLabelOf(low + 1)}-${cornerLabelOf(low + 2)}`;
+  return `Chi ${cornerLabelOf(low)}-${cornerLabelOf(low + 1)}-${cornerLabelOf(low + 2)}`;
 }
 
 /**
@@ -127,7 +127,7 @@ export function buildClaimActions(
       type: 'kong',
       tile,
       uses: [tile, tile, tile],
-      label: `Kong ${cornerLabelOf(tile)}`,
+      label: `Gang ${cornerLabelOf(tile)}`,
     });
   }
 
@@ -138,7 +138,7 @@ export function buildClaimActions(
       type: 'pung',
       tile,
       uses: [tile, tile],
-      label: `Pung ${cornerLabelOf(tile)}`,
+      label: `Pong ${cornerLabelOf(tile)}`,
     });
   }
 
@@ -197,7 +197,7 @@ export function buildRobbingActions(
       type: 'win',
       tile,
       taiPreview: tai,
-      label: `Rob the kong on ${englishNameOf(tile)} — ${tai} tai`,
+      label: `Rob the gang on ${englishNameOf(tile)} — ${tai} tai`,
     },
     {
       id: 'pass',
@@ -272,7 +272,7 @@ export function buildTurnActions(args: TurnActionArgs): AvailableAction[] {
         type: 'concealedKong',
         tile: t,
         uses: [t, t, t, t],
-        label: `Concealed kong ${cornerLabelOf(t)}`,
+        label: `Concealed gang ${cornerLabelOf(t)}`,
       });
     }
   }
@@ -286,7 +286,7 @@ export function buildTurnActions(args: TurnActionArgs): AvailableAction[] {
       type: 'addedKong',
       tile: meld.tile,
       uses: [meld.tile],
-      label: `Add to pung — kong ${cornerLabelOf(meld.tile)}`,
+      label: `Add to pong — gang ${cornerLabelOf(meld.tile)}`,
     });
   }
 

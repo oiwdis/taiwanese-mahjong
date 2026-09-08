@@ -422,6 +422,53 @@ describe('kongs and robbing', () => {
     game.act(0, kong.id);
     expect(game.players[0]!.melds[0]).toMatchObject({ kind: 'kong', concealed: true });
     expect(game.players[0]!.concealed[t('E')]).toBe(0);
+
+    const owner = game.buildView(0);
+    const other = game.buildView(1);
+    expect(owner.players[0]!.melds[0]!.tile).toBe(t('E'));
+    expect(other.players[0]!.melds[0]!.tile).toBe(-1);
+    expect(other.log.join(' ')).toContain('concealed gang');
+    expect(other.log.join(' ')).not.toMatch(/\bE\b/);
+  });
+});
+
+describe('advancing after a hand', () => {
+  function winAHand(): Game {
+    const game = newGame();
+    discardIntoTenpai(game);
+    game.act(1, findAction(game, 1, 'win')!.id);
+    expect(game.phase).toBe('handOver');
+    return game;
+  }
+
+  it('does not start the next hand until every connected human is ready', () => {
+    const game = winAHand();
+    game.readyForNextHand(0);
+    game.readyForNextHand(1);
+    game.readyForNextHand(2);
+    expect(game.phase).toBe('handOver');
+    game.readyForNextHand(3);
+    expect(game.phase).toBe('acting');
+  });
+
+  it('does not wait on a human who dropped after the summary appeared', () => {
+    const game = winAHand();
+    game.readyForNextHand(0);
+    game.readyForNextHand(1);
+    game.readyForNextHand(2);
+    expect(game.phase).toBe('handOver');
+    game.markDisconnected(3);
+    expect(game.phase).toBe('acting');
+  });
+
+  it('starts as soon as the last still-connected human presses next', () => {
+    const game = winAHand();
+    game.players[3]!.connected = false;
+    game.readyForNextHand(0);
+    game.readyForNextHand(1);
+    expect(game.phase).toBe('handOver');
+    game.readyForNextHand(2);
+    expect(game.phase).toBe('acting');
   });
 });
 

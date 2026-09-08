@@ -68,7 +68,7 @@ describe('chow choices', () => {
       tileFromString('3m'),
       tileFromString('4m'),
     ]);
-    expect(chows.map((c) => c.label)).toContain('Chow 4m-5m-6m');
+    expect(chows.map((c) => c.label)).toContain('Chi 4m-5m-6m');
   });
 
   it('offers three runs when the hand surrounds the discard', () => {

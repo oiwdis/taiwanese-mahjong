@@ -685,7 +685,7 @@ input[type='checkbox'] {
 
 .felt-well {
   position: absolute;
-  inset: 35%;
+  inset: 27%;
   border-radius: 10px;
   background: rgba(6, 12, 8, 0.28);
   box-shadow:
@@ -811,7 +811,7 @@ input[type='checkbox'] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 30%;
+  width: 44%;
   aspect-ratio: 1;
   text-align: center;
   z-index: 1;
@@ -845,7 +845,7 @@ input[type='checkbox'] {
 .compass-east { grid-area: 2 / 3; }
 .compass-south { grid-area: 3 / 2; }
 .compass-cn {
-  font-size: clamp(0.7rem, 2.4cqw, 1.05rem);
+  font-size: clamp(0.85rem, 3.2cqw, 1.35rem);
   font-weight: 750;
 }
 .compass-en {
@@ -876,7 +876,7 @@ input[type='checkbox'] {
   border: 1px solid rgba(217, 119, 6, 0.28);
 }
 .compass-round-cn {
-  font-size: clamp(0.85rem, 2.8cqw, 1.2rem);
+  font-size: clamp(1.05rem, 3.6cqw, 1.55rem);
   font-weight: 800;
   color: var(--gold);
 }
@@ -974,10 +974,10 @@ input[type='checkbox'] {
   justify-content: flex-start;
 }
 .river-north {
-  top: 28%;
+  top: 25%;
 }
 .river-south {
-  bottom: 28%;
+  bottom: 25%;
   align-content: flex-end;
 }
 .river-east,
@@ -989,11 +989,11 @@ input[type='checkbox'] {
   flex-direction: column;
 }
 .river-west {
-  left: 28%;
+  left: 25%;
   align-content: flex-start;
 }
 .river-east {
-  right: 28%;
+  right: 25%;
   align-content: flex-end;
 }
 
@@ -1169,6 +1169,12 @@ input[type='checkbox'] {
 .rack-south .rack-hand {
   flex-direction: row;
 }
+/* Top player's flowers sit under their concealed tiles, not beside them. */
+.rack-north {
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
 .rack-east,
 .rack-west {
   flex-direction: row;
@@ -1205,6 +1211,9 @@ input[type='checkbox'] {
   flex-wrap: nowrap;
   flex: none;
 }
+.rack-north .melds {
+  flex-direction: row;
+}
 .rack-east .melds,
 .rack-west .melds {
   flex-direction: column;
@@ -1227,6 +1236,27 @@ input[type='checkbox'] {
 }
 .rack .meld .tile-glyph {
   font-size: 0.7rem;
+}
+
+/* Flowers stay face-up and large enough to read, including on the side racks. */
+.rack .meld-flowers .tile,
+.rack-east .meld-flowers .tile,
+.rack-west .meld-flowers .tile {
+  width: 42px;
+  height: 58px;
+}
+.rack .meld-flowers .tile-glyph {
+  font-size: 1.45rem;
+}
+.rack .meld-flowers .tile-rank {
+  font-size: 0.62rem;
+}
+.rack .meld-flowers .tile-suit {
+  font-size: 0.44rem;
+}
+.rack-east .meld-flowers,
+.rack-west .meld-flowers {
+  flex-direction: column;
 }
 
 /* --------------------------------------------------- tiles in mid-flight */
@@ -1950,6 +1980,21 @@ input[type='checkbox'] {
   .wall-ring {
     inset: 24%;
     --wall-depth: 12px;
+  }
+  .felt-well {
+    inset: 28%;
+  }
+  .table-hub {
+    width: 40%;
+  }
+  .rack .meld-flowers .tile,
+  .rack-east .meld-flowers .tile,
+  .rack-west .meld-flowers .tile {
+    width: 34px;
+    height: 46px;
+  }
+  .rack .meld-flowers .tile-glyph {
+    font-size: 1.15rem;
   }
   .river {
     --river-w: 20px;

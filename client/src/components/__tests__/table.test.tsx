@@ -209,6 +209,23 @@ describe('discards land in front of their owner', () => {
     expect(html).not.toContain('rack-south');
   });
 
+  it('puts the top player’s flowers under their concealed tiles', () => {
+    const flowers = parseTiles('Sp Au');
+    const html = render(
+      view({
+        players: [
+          player(0),
+          player(1),
+          player(2, { flowers }),
+          player(3),
+        ],
+      }),
+    );
+    const north = html.slice(html.indexOf('rack-north'), html.indexOf('rack-east'));
+    expect(north.indexOf('rack-hand')).toBeLessThan(north.indexOf('meld-flowers'));
+    expect(north).toContain('tile-suit-season');
+  });
+
   it('puts a thrown tile in the thrower’s river, not the middle', () => {
     const thrown = parseTiles('3m')[0]!;
     const players = [player(0), player(1, { discards: [thrown] }), player(2), player(3)];

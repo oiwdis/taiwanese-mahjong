@@ -659,6 +659,11 @@ input[type='checkbox'] {
   max-height: 100%;
   aspect-ratio: 1;
   flex: none;
+  /* Three bands: racks outside the wall, rivers between wall and hub. */
+  --wall-inset: 24%;
+  --river-inset: 28%;
+  --hub-size: 28%;
+  --well-inset: 36%;
 }
 @supports (width: 1cqh) {
   .round-table {
@@ -685,7 +690,7 @@ input[type='checkbox'] {
 
 .felt-well {
   position: absolute;
-  inset: 22%;
+  inset: var(--well-inset);
   border-radius: 10px;
   background: rgba(6, 12, 8, 0.28);
   box-shadow:
@@ -711,7 +716,7 @@ input[type='checkbox'] {
    The ring sits in a middle band: racks stay outside it, rivers stay inside. */
 .wall-ring {
   position: absolute;
-  inset: 16%;
+  inset: var(--wall-inset);
   --wall-depth: 16px;
   z-index: 0;
 }
@@ -811,7 +816,7 @@ input[type='checkbox'] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 50%;
+  width: var(--hub-size);
   aspect-ratio: 1;
   text-align: center;
   z-index: 1;
@@ -894,8 +899,8 @@ input[type='checkbox'] {
   flex-direction: column;
   align-items: center;
   gap: 0.15rem;
-  min-width: 118%;
-  max-width: 168%;
+  min-width: 90%;
+  max-width: 108%;
   padding: 0.38rem 1.15rem;
   border-radius: 999px;
   background: rgba(8, 12, 10, 0.84);
@@ -933,8 +938,8 @@ input[type='checkbox'] {
 /* Discards sit in front of whoever threw them, six to a line — across for
    north/south, down for east/west — the way they sit on a real table. */
 .river {
-  --river-w: 30px;
-  --river-h: 42px;
+  --river-w: 24px;
+  --river-h: 34px;
   position: absolute;
   display: flex;
   flex-wrap: wrap;
@@ -951,7 +956,7 @@ input[type='checkbox'] {
   border-bottom-width: 2px;
 }
 .river .tile-glyph {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
 }
 .river .tile-rank {
   font-size: 0.56rem;
@@ -974,10 +979,10 @@ input[type='checkbox'] {
   justify-content: flex-start;
 }
 .river-north {
-  top: 19%;
+  top: var(--river-inset);
 }
 .river-south {
-  bottom: 19%;
+  bottom: var(--river-inset);
   align-content: flex-end;
 }
 .river-east,
@@ -989,11 +994,11 @@ input[type='checkbox'] {
   flex-direction: column;
 }
 .river-west {
-  left: 19%;
+  left: var(--river-inset);
   align-content: flex-start;
 }
 .river-east {
-  right: 19%;
+  right: var(--river-inset);
   align-content: flex-end;
 }
 
@@ -1038,12 +1043,20 @@ input[type='checkbox'] {
   pointer-events: auto;
 }
 .seat-stack-north {
-  top: 1%;
+  top: 0.4%;
   left: 50%;
   transform: translateX(-50%);
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
+}
+.seat-stack-north .seat {
+  padding: 0.16rem 0.4rem 0.16rem 0.16rem;
+}
+.seat-stack-north .seat-avatar {
+  width: 1.55rem;
+  height: 1.55rem;
+  font-size: 0.8rem;
 }
 .seat-stack-south {
   bottom: 1%;
@@ -1052,21 +1065,21 @@ input[type='checkbox'] {
 }
 .seat-stack-east {
   right: 0.6%;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 2%;
+  transform: none;
   flex-direction: column;
   align-items: flex-end;
   gap: 0.3rem;
-  max-height: 74%;
+  max-height: 70%;
 }
 .seat-stack-west {
   left: 0.6%;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 2%;
+  transform: none;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.3rem;
-  max-height: 74%;
+  max-height: 70%;
 }
 
 .seat {
@@ -1078,7 +1091,7 @@ input[type='checkbox'] {
   background: rgba(0, 0, 0, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.1);
   width: max-content;
-  max-width: 14rem;
+  max-width: 7.25rem;
 }
 .seat-east {
   flex-direction: row-reverse;
@@ -1214,6 +1227,10 @@ input[type='checkbox'] {
 .rack-north .melds {
   flex-direction: row;
 }
+.rack-north .meld-flowers .tile {
+  width: 22px;
+  height: 30px;
+}
 .rack-east .melds,
 .rack-west .melds {
   flex-direction: column;
@@ -1242,17 +1259,17 @@ input[type='checkbox'] {
 .rack .meld-flowers .tile,
 .rack-east .meld-flowers .tile,
 .rack-west .meld-flowers .tile {
-  width: 30px;
-  height: 42px;
+  width: 26px;
+  height: 36px;
 }
 .rack .meld-flowers .tile-glyph {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 .rack .meld-flowers .tile-rank {
-  font-size: 0.5rem;
+  font-size: 0.46rem;
 }
 .rack .meld-flowers .tile-suit {
-  font-size: 0.36rem;
+  font-size: 0.34rem;
 }
 .rack-east .meld-flowers,
 .rack-west .meld-flowers {
@@ -1977,31 +1994,30 @@ input[type='checkbox'] {
     grid-column: 1 / -1;
   }
 
+  .round-table {
+    --wall-inset: 24%;
+    --river-inset: 28%;
+    --hub-size: 26%;
+    --well-inset: 36%;
+  }
   .wall-ring {
-    inset: 17%;
     --wall-depth: 12px;
-  }
-  .felt-well {
-    inset: 25%;
-  }
-  .table-hub {
-    width: 40%;
   }
   .rack .meld-flowers .tile,
   .rack-east .meld-flowers .tile,
   .rack-west .meld-flowers .tile {
-    width: 26px;
-    height: 36px;
+    width: 22px;
+    height: 30px;
   }
   .rack .meld-flowers .tile-glyph {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
   }
   .river {
-    --river-w: 24px;
-    --river-h: 34px;
+    --river-w: 22px;
+    --river-h: 30px;
   }
   .river .tile-glyph {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
   }
   .rack-north .tile-back,
   .rack-south .tile-back {

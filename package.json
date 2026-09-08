@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev -w @mahjong/server\" \"npm run dev -w @mahjong/client\"",
     "build": "npm run build -w @mahjong/client",
-    "start": "node --import tsx server/src/index.ts",
+    "start": "node client/server.bundle.mjs",
     "test": "vitest run",
     "typecheck": "tsc -b shared server client",
     "sim": "node --import tsx/esm server/src/sim.ts"

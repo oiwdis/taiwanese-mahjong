@@ -39791,10 +39791,12 @@ app.get("*", (_req, res) => {
 });
 setInterval(() => rooms.sweep(), 1e3 * 60 * 10).unref();
 var port = Number(process.env.PORT ?? 3e3);
-var host = process.env.HOST ?? "0.0.0.0";
-httpServer.listen(port, host, () => {
-  console.log(`Taiwanese mahjong server listening on http://${host}:${port}`);
-});
+var host = process.env.HOST;
+var onListen = () => {
+  console.log(`Taiwanese mahjong server listening on ${host ?? "all interfaces"}:${port}`);
+};
+if (host) httpServer.listen(port, host, onListen);
+else httpServer.listen(port, onListen);
 /*! Bundled license information:
 
 depd/index.js:

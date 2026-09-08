@@ -1,9 +1,9 @@
 # This service is @mahjong/client. Build the UI and a bundled copy of the
 # game server, then listen on $PORT.
 [build]
-builder = "RAILPACK"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 watchPatterns = ["**"]
-buildCommand = "if [ -f ../package-lock.json ]; then cd ..; fi && npm ci && npm run build -w @mahjong/client"
 
 [deploy]
 startCommand = "node ./server.bundle.mjs"

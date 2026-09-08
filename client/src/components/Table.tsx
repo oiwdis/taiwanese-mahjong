@@ -20,7 +20,8 @@ import { MyHand } from './MyHand.js';
 
 type Confirm =
   | { kind: 'action'; action: AvailableAction }
-  | { kind: 'discard'; tile: Tile };
+  | { kind: 'discard'; tile: Tile }
+  | { kind: 'replace'; seat: number; name: string };
 
 /** Where a seat sits relative to you. You are always south. */
 type Pos = 'south' | 'east' | 'north' | 'west';
@@ -167,12 +168,16 @@ function SeatPlate({
   view,
   pos,
   self = false,
+  canReplace = false,
+  onReplace,
 }: {
   player: PublicPlayer;
   view: PlayerView;
   pos: Pos;
   /** Your own plate: name and score only. The real hand lives in the tray. */
   self?: boolean;
+  canReplace?: boolean;
+  onReplace?: (seat: number) => void;
 }) {
   const isCurrent = view.currentSeat === player.seat;
   const isWaiting = view.waitingOn.includes(player.seat);
@@ -205,6 +210,15 @@ function SeatPlate({
           {isWaiting && <span className="tag thinking">thinking…</span>}
           <span className="seat-score">{player.score}</span>
         </div>
+        {canReplace && onReplace && (
+          <button
+            type="button"
+            className="btn btn-tiny replace-bot"
+            onClick={() => onReplace(player.seat)}
+          >
+            Replace with bot
+          </button>
+        )}
       </div>
 
       {!self && (
@@ -231,7 +245,7 @@ function ConfirmDialog({
   onCancel,
   onConfirm,
 }: {
-  confirm: Confirm;
+  confirm: Exclude<Confirm, { kind: 'replace' }>;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -453,8 +467,15 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
   const resolveConfirm = () => {
     if (!confirm) return;
     if (confirm.kind === 'action') void runAction(confirm.action);
-    else void runDiscard(confirm.tile);
+    else if (confirm.kind === 'discard') void runDiscard(confirm.tile);
+    else void run(() => api.replaceWithBot(confirm.seat));
     setConfirm(null);
+  };
+
+  const canReplaceSeat = (seat: number) => {
+    if (!isHost) return false;
+    const p = view.players[seat];
+    return Boolean(p && !p.isBot && !p.connected && p.seat !== view.you);
   };
 
   const north = seatAt(2);
@@ -574,9 +595,33 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
             )}
           </div>
 
-          {north && <SeatPlate player={north} view={view} pos="north" />}
-          {east && <SeatPlate player={east} view={view} pos="east" />}
-          {west && <SeatPlate player={west} view={view} pos="west" />}
+          {north && (
+            <SeatPlate
+              player={north}
+              view={view}
+              pos="north"
+              canReplace={canReplaceSeat(north.seat)}
+              onReplace={(seat) => setConfirm({ kind: 'replace', seat, name: north.name })}
+            />
+          )}
+          {east && (
+            <SeatPlate
+              player={east}
+              view={view}
+              pos="east"
+              canReplace={canReplaceSeat(east.seat)}
+              onReplace={(seat) => setConfirm({ kind: 'replace', seat, name: east.name })}
+            />
+          )}
+          {west && (
+            <SeatPlate
+              player={west}
+              view={view}
+              pos="west"
+              canReplace={canReplaceSeat(west.seat)}
+              onReplace={(seat) => setConfirm({ kind: 'replace', seat, name: west.name })}
+            />
+          )}
           {me && <SeatPlate player={me} view={view} pos="south" self />}
 
           <FlightLayer flights={flights} onDone={clearFlight} />
@@ -658,7 +703,27 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
         </ul>
       </details>
 
-      {confirm && (
+      {confirm?.kind === 'replace' && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="replace-title">
+          <div className="modal modal-narrow">
+            <h2 id="replace-title">Replace {confirm.name} with a bot?</h2>
+            <p className="confirm-rule">
+              They left the table. A bot will play their hand and they will not
+              get this seat back.
+            </p>
+            <div className="modal-actions">
+              <button type="button" className="btn" onClick={() => setConfirm(null)}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={resolveConfirm}>
+                Replace with bot
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirm && confirm.kind !== 'replace' && (
         <ConfirmDialog
           confirm={confirm}
           onCancel={() => setConfirm(null)}

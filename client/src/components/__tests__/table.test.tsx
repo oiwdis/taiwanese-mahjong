@@ -88,6 +88,39 @@ describe('leaving the table', () => {
     const html = renderToStaticMarkup(<Table view={view()} onExit={() => {}} />);
     expect(html).toContain('Exit game');
   });
+
+  it('lets the host replace an away player with a bot', () => {
+    const html = render(
+      view({
+        hostSeat: 0,
+        you: 0,
+        players: [
+          player(0),
+          player(1, { isBot: false, connected: false }),
+          player(2, { isBot: true }),
+          player(3, { isBot: true }),
+        ],
+      }),
+    );
+    expect(html).toContain('Replace with bot');
+    expect(html).toContain('away');
+  });
+
+  it('hides the replace button from other seats', () => {
+    const html = render(
+      view({
+        hostSeat: 0,
+        you: 2,
+        players: [
+          player(0),
+          player(1, { connected: false }),
+          player(2),
+          player(3),
+        ],
+      }),
+    );
+    expect(html).not.toContain('Replace with bot');
+  });
 });
 
 describe('your hand', () => {

@@ -63,3 +63,56 @@ describe('kicking a player', () => {
     expect(room.game.players.some((p) => p.isBot)).toBe(false);
   });
 });
+
+describe('replacing an away player with a bot', () => {
+  function playingTable(): Room {
+    const room = openTable();
+    room.addBot();
+    room.addBot();
+    room.game.startGame();
+    return room;
+  }
+
+  it('turns a disconnected human into a bot in the same seat', () => {
+    const room = playingTable();
+    const guest = room.game.players[1]!;
+    const oldToken = guest.token;
+    room.game.markDisconnected(1);
+
+    const res = room.replaceAwayWithBot(1);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(res.name).toBe('Guest');
+
+    const seat = room.game.players[1]!;
+    expect(seat.isBot).toBe(true);
+    expect(seat.connected).toBe(true);
+    expect(seat.name).toBe('Guest');
+    expect(seat.token).not.toBe(oldToken);
+    expect(room.wasKicked(oldToken)).toBe(true);
+    expect(room.game.players).toHaveLength(4);
+    expect(room.game.log.some((line) => line.includes('a bot took that seat'))).toBe(true);
+  });
+
+  it('refuses while they are still connected', () => {
+    const room = playingTable();
+    const res = room.replaceAwayWithBot(1);
+    expect(res).toEqual({ ok: false, error: 'They are still at the table' });
+    expect(room.game.players[1]!.isBot).toBe(false);
+  });
+
+  it('refuses in the lobby', () => {
+    const room = openTable();
+    room.game.markDisconnected(1);
+    const res = room.replaceAwayWithBot(1);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error).toMatch(/lobby/i);
+  });
+
+  it('still refuses a lobby-style kick once play has started', () => {
+    const room = playingTable();
+    room.game.markDisconnected(1);
+    const res = room.kick(1);
+    expect(res.ok).toBe(false);
+    expect(room.game.players).toHaveLength(4);
+  });
+});

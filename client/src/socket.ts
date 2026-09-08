@@ -28,6 +28,7 @@ export const api = {
   addBot: () => call<{ ok: true }>('addBot'),
   removeBot: (seat: number) => call<{ ok: true }>('removeBot', { seat }),
   kick: (seat: number) => call<{ ok: true }>('kick', { seat }),
+  replaceWithBot: (seat: number) => call<{ ok: true }>('replaceWithBot', { seat }),
   startGame: () => call<{ ok: true }>('startGame'),
   returnToLobby: () => call<{ ok: true }>('returnToLobby'),
   leaveRoom: () => call<{ ok: true }>('leaveRoom'),

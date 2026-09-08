@@ -88,6 +88,38 @@ export class Room {
     return { ok: true, socketId, name: player.name, token: player.token };
   }
 
+  /**
+   * Host swaps a disconnected human for a bot without emptying the seat.
+   *
+   * Lobby kicks still use `kick`. Mid-game a missing player has a hand, so
+   * the only safe move is to keep the seat and let a bot finish it.
+   */
+  replaceAwayWithBot(seat: number):
+    | { ok: true; socketId: string | null; name: string; token: string }
+    | { ok: false; error: string } {
+    if (this.game.phase === 'lobby') {
+      return { ok: false, error: 'In the lobby, kick them instead' };
+    }
+    const player = this.game.players[seat];
+    if (!player) return { ok: false, error: 'Nobody in that seat' };
+    if (player.token === this.hostToken) {
+      return { ok: false, error: 'You cannot replace yourself' };
+    }
+    const oldToken = player.token;
+    const socketId = this.connections.get(oldToken) ?? null;
+    const res = this.game.replaceHumanWithBot(seat);
+    if (!res.ok) return res;
+    this.connections.delete(oldToken);
+    this.kickedTokens.add(oldToken);
+    player.token = randomUUID();
+    const timer = this.botTimers.get(seat);
+    if (timer) {
+      clearTimeout(timer);
+      this.botTimers.delete(seat);
+    }
+    return { ok: true, socketId, name: player.name, token: oldToken };
+  }
+
   join(name: string, socketId: string, token?: string): { token: string; seat: number | null } {
     // Reclaim an existing seat when the token is recognised.
     if (token) {

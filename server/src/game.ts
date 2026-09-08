@@ -605,6 +605,25 @@ export class Game {
     if (this.phase === 'handOver') this.readyForNextHand(seat);
   }
 
+  /**
+   * Turn a disconnected human into a bot in the same seat.
+   *
+   * The hand, score and wind stay put. The host does this so a dropped player
+   * cannot stall the table.
+   */
+  replaceHumanWithBot(seat: number): { ok: true } | { ok: false; error: string } {
+    const player = this.players[seat];
+    if (!player) return { ok: false, error: 'Nobody in that seat' };
+    if (player.isBot) return { ok: false, error: 'That seat is already a bot' };
+    if (player.connected) return { ok: false, error: 'They are still at the table' };
+    player.isBot = true;
+    player.connected = true;
+    if (this.phase === 'handOver') player.readyForNext = true;
+    this.pushLog(`${player.name} left — a bot took that seat`);
+    this.maybeAdvanceHand();
+    return { ok: true };
+  }
+
   // -------------------------------------------------------------------------
   // Window resolution
   // -------------------------------------------------------------------------

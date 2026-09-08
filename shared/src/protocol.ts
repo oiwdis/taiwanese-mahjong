@@ -48,6 +48,8 @@ export interface ClientEvents {
   removeBot: (payload: { seat: number }, ack: (res: Result<{ ok: true }>) => void) => void;
   /** Host removes a seated player from the lobby. */
   kick: (payload: { seat: number }, ack: (res: Result<{ ok: true }>) => void) => void;
+  /** Host turns a disconnected human into a bot mid-game. */
+  replaceWithBot: (payload: { seat: number }, ack: (res: Result<{ ok: true }>) => void) => void;
 
   /** Host starts a game, from the lobby or straight off a finished one. */
   startGame: (ack: (res: Result<{ ok: true }>) => void) => void;

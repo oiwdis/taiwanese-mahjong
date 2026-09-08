@@ -159,6 +159,25 @@ io.on('connection', (socket) => {
     ack?.({ ok: true });
   }));
 
+  socket.on('replaceWithBot', handler('replaceWithBot', (payload, ack) => {
+    const found = sessionRoom(socket.id);
+    if (!found) return ack?.(fail('Not in a room'));
+    if (!found.room.isHost(found.session.token)) {
+      return ack?.(fail('Only the host can replace a player'));
+    }
+    const res = found.room.replaceAwayWithBot(Number(payload?.seat));
+    if (!res.ok) return ack?.(fail(res.error));
+    if (res.socketId) {
+      io.to(res.socketId).emit('kicked', {
+        reason: 'The host replaced you with a bot.',
+      });
+      sessions.delete(res.socketId);
+    }
+    found.room.broadcast();
+    found.room.pumpBots();
+    ack?.({ ok: true });
+  }));
+
   socket.on('startGame', handler('startGame', (ack) => {
     const found = sessionRoom(socket.id);
     if (!found) return ack?.(fail('Not in a room'));

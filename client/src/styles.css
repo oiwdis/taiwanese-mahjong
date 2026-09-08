@@ -985,6 +985,11 @@ input[type='checkbox'] {
   background: rgba(0, 0, 0, 0.58);
   border-color: rgba(255, 255, 255, 0.12);
 }
+.replace-bot {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+}
 
 .rack {
   display: flex;

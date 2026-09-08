@@ -38935,6 +38935,24 @@ var Game = class {
     player.connected = false;
     if (this.phase === "handOver") this.readyForNextHand(seat);
   }
+  /**
+   * Turn a disconnected human into a bot in the same seat.
+   *
+   * The hand, score and wind stay put. The host does this so a dropped player
+   * cannot stall the table.
+   */
+  replaceHumanWithBot(seat) {
+    const player = this.players[seat];
+    if (!player) return { ok: false, error: "Nobody in that seat" };
+    if (player.isBot) return { ok: false, error: "That seat is already a bot" };
+    if (player.connected) return { ok: false, error: "They are still at the table" };
+    player.isBot = true;
+    player.connected = true;
+    if (this.phase === "handOver") player.readyForNext = true;
+    this.pushLog(`${player.name} left \u2014 a bot took that seat`);
+    this.maybeAdvanceHand();
+    return { ok: true };
+  }
   // -------------------------------------------------------------------------
   // Window resolution
   // -------------------------------------------------------------------------
@@ -39515,6 +39533,35 @@ var Room = class {
     this.game.removePlayer(seat);
     return { ok: true, socketId, name: player.name, token: player.token };
   }
+  /**
+   * Host swaps a disconnected human for a bot without emptying the seat.
+   *
+   * Lobby kicks still use `kick`. Mid-game a missing player has a hand, so
+   * the only safe move is to keep the seat and let a bot finish it.
+   */
+  replaceAwayWithBot(seat) {
+    if (this.game.phase === "lobby") {
+      return { ok: false, error: "In the lobby, kick them instead" };
+    }
+    const player = this.game.players[seat];
+    if (!player) return { ok: false, error: "Nobody in that seat" };
+    if (player.token === this.hostToken) {
+      return { ok: false, error: "You cannot replace yourself" };
+    }
+    const oldToken = player.token;
+    const socketId = this.connections.get(oldToken) ?? null;
+    const res = this.game.replaceHumanWithBot(seat);
+    if (!res.ok) return res;
+    this.connections.delete(oldToken);
+    this.kickedTokens.add(oldToken);
+    player.token = randomUUID();
+    const timer = this.botTimers.get(seat);
+    if (timer) {
+      clearTimeout(timer);
+      this.botTimers.delete(seat);
+    }
+    return { ok: true, socketId, name: player.name, token: oldToken };
+  }
   join(name, socketId, token) {
     if (token) {
       const existing = this.game.playerByToken(token);
@@ -39785,6 +39832,24 @@ io2.on("connection", (socket) => {
       sessions.delete(res.socketId);
     }
     found.room.broadcast();
+    ack?.({ ok: true });
+  }));
+  socket.on("replaceWithBot", handler("replaceWithBot", (payload, ack) => {
+    const found = sessionRoom(socket.id);
+    if (!found) return ack?.(fail("Not in a room"));
+    if (!found.room.isHost(found.session.token)) {
+      return ack?.(fail("Only the host can replace a player"));
+    }
+    const res = found.room.replaceAwayWithBot(Number(payload?.seat));
+    if (!res.ok) return ack?.(fail(res.error));
+    if (res.socketId) {
+      io2.to(res.socketId).emit("kicked", {
+        reason: "The host replaced you with a bot."
+      });
+      sessions.delete(res.socketId);
+    }
+    found.room.broadcast();
+    found.room.pumpBots();
     ack?.({ ok: true });
   }));
   socket.on("startGame", handler("startGame", (ack) => {

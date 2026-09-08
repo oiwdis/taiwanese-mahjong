@@ -6,7 +6,7 @@ dockerfilePath = "Dockerfile"
 watchPatterns = ["**"]
 
 [deploy]
-startCommand = "npm start"
+startCommand = "node start.mjs || node server/start.mjs || node client/server.bundle.mjs"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

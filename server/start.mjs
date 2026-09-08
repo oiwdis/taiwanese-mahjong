@@ -1,3 +1,5 @@
+// Railway may start `node ./start.mjs` from /app (repo root). That file
+// lives at ../start.mjs; this copy is for a server-only working directory.
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';

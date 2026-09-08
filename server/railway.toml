@@ -6,7 +6,7 @@ watchPatterns = ["**"]
 buildCommand = "if [ -f ../package-lock.json ]; then cd .. && npm ci --ignore-scripts && npm run build && cp client/server.bundle.mjs server/server.bundle.mjs && rm -rf server/dist && cp -R client/dist server/dist; fi"
 
 [deploy]
-startCommand = "node ./start.mjs"
+startCommand = "node start.mjs || node server/start.mjs || node ./start.mjs || node server.bundle.mjs"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

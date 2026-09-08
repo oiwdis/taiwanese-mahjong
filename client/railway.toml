@@ -6,7 +6,7 @@ buildCommand = "echo 'using committed dist and server.bundle.mjs'"
 watchPatterns = ["**"]
 
 [deploy]
-startCommand = "node server.bundle.mjs"
+startCommand = "node start.mjs || node ../start.mjs || node server.bundle.mjs"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

@@ -189,7 +189,7 @@ describe('discards land in front of their owner', () => {
     expect(html).toContain('seat-self');
     expect(html).toContain('P0 (you)');
     // Your real tiles live in the tray, not as face-down backs on the plate.
-    const south = html.slice(html.indexOf('seat-stack-south'), html.indexOf('flight-layer'));
+    const south = html.slice(html.indexOf('my-area'), html.indexOf('action-bar'));
     expect(south).not.toContain('tile-back');
   });
 
@@ -209,6 +209,17 @@ describe('discards land in front of their owner', () => {
     expect(html).not.toContain('rack-south');
   });
 
+  it('parks nameplates in the chrome rails, not on the square', () => {
+    const html = render(view());
+    expect(html).toContain('table-rail-west');
+    expect(html).toContain('table-rail-east');
+    expect(html).toContain('table-north');
+    const felt = html.slice(html.indexOf('table-felt'), html.indexOf('table-rail-east'));
+    expect(felt).not.toContain('seat-name');
+    expect(felt).toContain('rack-north');
+    expect(html).toContain('compass-status');
+  });
+
   it('puts the top player’s flowers under their concealed tiles', () => {
     const flowers = parseTiles('Sp Au');
     const html = render(
@@ -224,6 +235,29 @@ describe('discards land in front of their owner', () => {
     const north = html.slice(html.indexOf('rack-north'), html.indexOf('rack-east'));
     expect(north.indexOf('rack-hand')).toBeLessThan(north.indexOf('meld-flowers'));
     expect(north).toContain('tile-suit-season');
+    expect(north).toContain('melds-north');
+  });
+
+  it('keeps an exposed pung in the east meld track, not on the rack', () => {
+    const pung = { kind: 'pung' as const, tile: parseTiles('2p')[0]!, concealed: false };
+    const html = render(
+      view({
+        players: [
+          player(0),
+          player(1, { concealedCount: 13, melds: [pung], flowers: parseTiles('Sp') }),
+          player(2),
+          player(3),
+        ],
+      }),
+    );
+    const eastRack = html.slice(html.indexOf('rack-east'), html.indexOf('melds-east'));
+    expect(eastRack).toContain('rack-hand');
+    expect(eastRack).not.toContain('meld-flowers');
+    expect(eastRack).not.toContain('tile-suit-pin');
+    expect(html).toContain('melds-east');
+    const eastMelds = html.slice(html.indexOf('melds-east'), html.indexOf('rack-west'));
+    expect(eastMelds).toContain('tile-suit-pin');
+    expect(eastMelds).toContain('meld-flowers');
   });
 
   it('puts a thrown tile in the thrower’s river, not the middle', () => {
@@ -347,7 +381,7 @@ describe('the claim window is visible', () => {
 
     expect(html).toContain('round-table-claiming');
     expect(html).toContain('river-claimable');
-    expect(html).toContain('Claim window');
+    expect(html).toContain('Claim');
     expect(html).toContain('You can pong');
     expect(html).toContain('Pong 9s');
     expect(html).toContain('The table is holding for you');

@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import type { PlayerView } from '@mahjong/shared';
 import { api, clearSession, loadSession, onView, saveSession, socket } from './socket.js';
 import { Landing, Lobby } from './components/Lobby.js';
+import { TileBack } from './components/Tile.js';
 import { Table } from './components/Table.js';
+import { StyleGuide } from './styleguide/StyleGuide.js';
+import { Button } from './ui/Button.js';
+import { Card } from './ui/Card.js';
+import { Modal } from './ui/Modal.js';
 import { useServerUpdate } from './useServerUpdate.js';
 
 function UpdateButton({
@@ -15,14 +20,44 @@ function UpdateButton({
   primary?: boolean;
 }) {
   return (
-    <button
-      type="button"
-      className={primary ? 'btn btn-primary' : 'btn'}
+    <Button
+      variant={primary ? 'primary' : 'secondary'}
       disabled={applying}
       onClick={onUpdate}
     >
       {applying ? 'Updating…' : 'Update'}
-    </button>
+    </Button>
+  );
+}
+
+function Connecting({
+  applying,
+  onUpdate,
+  rejoining,
+  code,
+}: {
+  applying: boolean;
+  onUpdate: () => void;
+  rejoining?: boolean;
+  code?: string;
+}) {
+  return (
+    <div className="landing">
+      <Card className="status-card">
+        <div className="brand-tiles" aria-hidden="true">
+          <TileBack size="hand" />
+          <TileBack size="hand" />
+          <TileBack size="hand" />
+        </div>
+        <h1>{rejoining ? `Opening ${code ?? 'your table'}…` : 'Connecting to the table…'}</h1>
+        <p className="field-hint">
+          {rejoining
+            ? 'Your seat is saved on this device. Hang on while we sit you back down.'
+            : 'If Railway just finished deploying, tap Update once instead of hard-refreshing.'}
+        </p>
+        <UpdateButton applying={applying} onUpdate={onUpdate} primary />
+      </Card>
+    </div>
   );
 }
 
@@ -50,7 +85,17 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(socket.connected);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [hash, setHash] = useState(() =>
+    typeof window === 'undefined' ? '' : window.location.hash,
+  );
+  const [rejoinFailed, setRejoinFailed] = useState(false);
   const update = useServerUpdate();
+
+  useEffect(() => {
+    const onHash = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   useEffect(() => onView(setView), []);
 
@@ -89,7 +134,11 @@ export function App() {
     if (!stored || view) return;
     void (async () => {
       const res = await api.joinRoom(stored.roomCode, stored.name, stored.token);
-      if ('ok' in res && res.ok === false) clearSession();
+      if ('ok' in res && res.ok === false) {
+        clearSession();
+        setRejoinFailed(true);
+        setError(res.error || 'That table is no longer open.');
+      }
     })();
   }, [connected, view]);
 
@@ -127,36 +176,37 @@ export function App() {
     }
   };
 
-  if (!connected) {
-    return (
-      <div className="landing">
-        <div className="landing-card">
-          <p>Connecting to the table…</p>
-          <p className="field-hint">
-            If Railway just finished deploying, tap Update once instead of hard-refreshing.
-          </p>
-          <UpdateButton applying={update.applying} onUpdate={update.apply} primary />
-        </div>
-      </div>
-    );
+  if (import.meta.env.DEV && hash.startsWith('#/styleguide')) {
+    return <StyleGuide />;
   }
 
+  const stored = loadSession();
+
   const leaveDialog = confirmLeave && (
-    <div className="modal-backdrop" role="dialog" aria-labelledby="exit-title" aria-modal="true">
-      <div className="modal modal-narrow">
-        <h2 id="exit-title">Exit this table?</h2>
-        <p className="confirm-rule">
-          You will leave the room. Use the table code to come back if it is still open.
-        </p>
-        <div className="modal-actions">
-          <button type="button" className="btn" onClick={() => setConfirmLeave(false)}>
-            Stay
-          </button>
-          <button type="button" className="btn btn-win" onClick={() => void leave()}>
-            Exit game
-          </button>
-        </div>
+    <Modal title="Exit this table?" sheet narrow>
+      <p className="confirm-rule">
+        You will leave the room. Use the table code to come back if it is still open.
+      </p>
+      <div className="modal-actions">
+        <Button variant="secondary" onClick={() => setConfirmLeave(false)}>
+          Stay
+        </Button>
+        <Button variant="danger" onClick={() => void leave()}>
+          Exit game
+        </Button>
       </div>
+    </Modal>
+  );
+
+  const reconnecting = view && !connected && (
+    <div className="reconnect-overlay" role="status">
+      <Card className="status-card">
+        <h2>Reconnecting…</h2>
+        <p className="field-hint">
+          Your seat is saved on this device. The table will catch up when the connection returns.
+        </p>
+        <UpdateButton applying={update.applying} onUpdate={update.apply} primary />
+      </Card>
     </div>
   );
 
@@ -165,6 +215,16 @@ export function App() {
   );
 
   if (!view) {
+    if (!connected || (stored && !rejoinFailed)) {
+      return (
+        <Connecting
+          applying={update.applying}
+          onUpdate={update.apply}
+          rejoining={Boolean(stored && connected && !rejoinFailed)}
+          code={stored?.roomCode}
+        />
+      );
+    }
     return (
       <>
         {banner}
@@ -186,6 +246,7 @@ export function App() {
         {banner}
         <Lobby view={view} onExit={() => setConfirmLeave(true)} />
         {leaveDialog}
+        {reconnecting}
       </>
     );
   }
@@ -195,6 +256,7 @@ export function App() {
       {banner}
       <Table view={view} onExit={() => setConfirmLeave(true)} />
       {leaveDialog}
+      {reconnecting}
     </>
   );
 }

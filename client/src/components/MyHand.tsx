@@ -103,13 +103,16 @@ export function MyHand({
     startX: number;
     startY: number;
     dragging: boolean;
+    pointerType: string;
+    captured: boolean;
   } | null>(null);
   const skipClickRef = useRef(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   const onPointerDown = (index: number, event: React.PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    const mouse = event.pointerType === 'mouse';
+    if (mouse) event.currentTarget.setPointerCapture(event.pointerId);
     dragRef.current = {
       pointerId: event.pointerId,
       tile: tiles[index]!.tile,
@@ -117,6 +120,8 @@ export function MyHand({
       startX: event.clientX,
       startY: event.clientY,
       dragging: false,
+      pointerType: event.pointerType,
+      captured: mouse,
     };
     skipClickRef.current = false;
   };
@@ -124,8 +129,19 @@ export function MyHand({
   const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
     const drag = dragRef.current;
     if (!drag || event.pointerId !== drag.pointerId) return;
-    const dist = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    const dist = Math.hypot(dx, dy);
     if (!drag.dragging && dist < DRAG_THRESHOLD_PX) return;
+    // A sideways swipe on a phone scrolls the hand. A mouse drag still reorders.
+    if (drag.pointerType !== 'mouse' && !drag.dragging && Math.abs(dx) > Math.abs(dy)) {
+      dragRef.current = null;
+      return;
+    }
+    if (!drag.captured) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+      drag.captured = true;
+    }
     drag.dragging = true;
     skipClickRef.current = true;
     const over = rootRef.current ? indexAtPoint(rootRef.current, event.clientX, event.clientY) : -1;
@@ -163,25 +179,34 @@ export function MyHand({
   return (
     <div
       ref={rootRef}
+      id="hand-tiles"
       className={cls('my-hand', draggingIndex !== null && 'my-hand-sorting')}
     >
-      {tiles.map((placed, i) => (
+      {tiles.map((placed, i) => {
+        const drawn = view.drawnTile === placed.tile && i === tileValues.lastIndexOf(placed.tile);
+        return (
         <TileFace
           key={placed.id}
           tile={placed.tile}
-          size="lg"
+          size="hand"
           sortable
           data-hand-index={i}
-          highlight={view.drawnTile === placed.tile && i === tileValues.lastIndexOf(placed.tile)}
+          highlight={drawn}
+          justDrawn={drawn}
           dim={canDiscard && !discardable.includes(placed.tile)}
-          className={cls(i === draggingIndex && 'tile-dragging')}
+          selected={i === draggingIndex}
+          className={cls(
+            i === draggingIndex && 'tile-dragging',
+            drawn && i > 0 && 'tile-drawn-aside',
+          )}
           onPointerDown={(event) => onPointerDown(i, event)}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
           onClick={canDiscard ? () => onTileClick(placed.tile) : undefined}
         />
-      ))}
+        );
+      })}
     </div>
   );
 }

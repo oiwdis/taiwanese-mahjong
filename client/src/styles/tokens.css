@@ -1,0 +1,255 @@
+/* Design tokens. Raw values live here. Components and screens only use the variables. */
+
+:root {
+  color-scheme: dark;
+
+  /* Primitives */
+  --green-900: #0c2419;
+  --green-800: #123528;
+  --ivory-50: #fbf7f0;
+  --ivory-100: #f3eadb;
+  --ivory-200: #e4d8c4;
+  --ink-900: #1c1612;
+  --ink-700: #3f362e;
+  --brass-500: #c6a15a;
+  --brass-100: #f3e6c4;
+  --cinnabar-600: #8c2f2a;
+  --cinnabar-700: #6f241f;
+  --jade-400: #8fd4ae;
+  --wood-700: #5a3a22;
+  --wood-500: #7a5232;
+  --wood-900: #2a1a10;
+
+  /* Tile inks. Stable in both rooms. */
+  --tile-face: var(--ivory-50);
+  --tile-face-shade: var(--ivory-100);
+  --tile-edge: #cfc3ae;
+  --tile-ink: #1a2744;
+  --tile-red: #c4322a;
+  --tile-green: #1b7a42;
+  --tile-blue: #1d4e89;
+  --tile-gold: #a67408;
+  --tile-back: #1e3a8a;
+  --tile-back-hi: #3c68c9;
+  --tile-back-deep: #14275f;
+  --tile-back-edge: #0e1c48;
+
+  /* Seat identity. Rings and bars only. */
+  --seat-east: #b5524a;
+  --seat-south: #b08948;
+  --seat-west: #3f7d6e;
+  --seat-north: #3d5c80;
+
+  /* Table. Does not follow light or dark. */
+  --table-felt: #157246;
+  --table-felt-deep: #0c3f28;
+  --table-felt-highlight: #1e8a56;
+  --on-table: #f7f2e9;
+  --on-table-muted: #e7dccb;
+
+  /* Semantic roles, dark room. */
+  --room: #14110e;
+  --room-raised: #221c17;
+  --surface: #2a241e;
+  --surface-strong: #322b24;
+  --text: #f7f2ea;
+  --text-muted: #ddd4c8;
+  --line: rgb(247 242 234 / 0.16);
+  --line-strong: rgb(247 242 234 / 0.32);
+  --accent: var(--brass-500);
+  --accent-ink: #241c0e;
+  --danger: var(--cinnabar-600);
+  --danger-ink: #fff8f6;
+  --success: var(--jade-400);
+  --success-ink: #062216;
+  --warning: #e4b86a;
+  --warning-ink: #241c0e;
+  --focus: var(--brass-100);
+  --scrim: rgb(12 10 8 / 0.72);
+
+  /* Type. One UI stack. */
+  --font-ui: "Avenir Next", "Segoe UI", "PingFang TC", "Hiragino Sans", "Noto Sans TC",
+    "Microsoft JhengHei", "WenQuanYi Micro Hei", ui-sans-serif, system-ui, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.75rem;
+  --text-display: 2.5rem;
+  --leading-xs: 1.125rem;
+  --leading-sm: 1.375rem;
+  --leading-md: 1.5rem;
+  --leading-lg: 1.75rem;
+  --leading-xl: 2.125rem;
+  --leading-display: 3rem;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --tracking-label: 0.06em;
+
+  /* 4px space scale */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-rest: 0 1px 2px rgb(20 16 12 / 0.28);
+  --shadow-raised: 0 10px 28px rgb(20 16 12 / 0.32);
+  --shadow-overlay: 0 24px 60px rgb(12 10 8 / 0.48);
+  --shadow-tile: 0 1px 0 rgb(90 70 40 / 0.35), 0 2px 3px rgb(20 16 12 / 0.22);
+
+  /* Layers */
+  --z-base: 0;
+  --z-seat: 2;
+  --z-tile: 3;
+  --z-meld: 4;
+  --z-flight: 6;
+  --z-claim: 12;
+  --z-banner: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-normal: 200ms;
+  --motion-slow: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Tile size */
+  --tile-hand-w: clamp(44px, 4.2vw, 56px);
+  --tile-hand-h: calc(var(--tile-hand-w) * 1.36);
+  --tile-discard-w: 32px;
+  --tile-discard-h: 44px;
+  --tile-meld-w: 28px;
+  --tile-meld-h: 38px;
+
+  /*
+   * Breakpoints. Media queries repeat these lengths; custom properties
+   * cannot be used inside a query condition.
+   * phone portrait:  max-width 40rem
+   * tablet:           40rem – 64rem
+   * desktop:          min-width 64rem
+   * phone landscape:  max-height 31.25rem and orientation landscape
+   */
+  --bp-phone: 40rem;
+  --bp-tablet: 64rem;
+  --bp-phone-landscape: 31.25rem;
+
+  /* Legacy names still referenced by older class rules. */
+  --felt: var(--table-felt);
+  --felt-dark: var(--table-felt-deep);
+  --ink: var(--tile-ink);
+  --paper: var(--text);
+  --gold: var(--accent);
+  --accent-legacy: var(--danger);
+  --radius: var(--radius-md);
+  --man: var(--tile-ink);
+  --pin: var(--tile-blue);
+  --sou: var(--tile-green);
+  --wind: var(--tile-ink);
+  --dragon-r: var(--tile-red);
+  --dragon-g: var(--tile-green);
+  --dragon-w: var(--tile-blue);
+  --flower: var(--tile-gold);
+}
+
+/* Dark semantic values again so a dark frame can sit inside a light page. */
+:root,
+[data-theme='dark'] {
+  --room: #14110e;
+  --room-raised: #221c17;
+  --surface: #2a241e;
+  --surface-strong: #322b24;
+  --text: #f7f2ea;
+  --text-muted: #ddd4c8;
+  --line: rgb(247 242 234 / 0.16);
+  --line-strong: rgb(247 242 234 / 0.32);
+  --accent: var(--brass-500);
+  --accent-ink: #241c0e;
+  --danger: var(--cinnabar-600);
+  --danger-ink: #fff8f6;
+  --success: var(--jade-400);
+  --success-ink: #062216;
+  --warning: #e4b86a;
+  --warning-ink: #241c0e;
+  --focus: var(--brass-100);
+  --scrim: rgb(12 10 8 / 0.72);
+  --money-up: var(--jade-400);
+  --money-down: #ffb4ae;
+}
+
+:root[data-theme='light'],
+[data-theme='light'] {
+  color-scheme: light;
+  --room: #efe6d8;
+  --room-raised: #f7f1e6;
+  --surface: #fffaf3;
+  --surface-strong: #fffaf3;
+  --text: #1c1612;
+  --text-muted: #534b42;
+  --line: rgb(28 22 18 / 0.14);
+  --line-strong: rgb(28 22 18 / 0.28);
+  --accent: #6f5018;
+  --accent-ink: #fffaf3;
+  --danger: var(--cinnabar-700);
+  --danger-ink: #fff8f6;
+  --success: #0e6b3a;
+  --success-ink: #f4fff8;
+  --warning: #8a5a10;
+  --warning-ink: #fffaf3;
+  --focus: #6f5018;
+  --scrim: rgb(28 22 18 / 0.46);
+  --money-up: #0e6b3a;
+  --money-down: #8c2f2a;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --room: #efe6d8;
+    --room-raised: #f7f1e6;
+    --surface: #fffaf3;
+    --surface-strong: #fffaf3;
+    --text: #1c1612;
+    --text-muted: #534b42;
+    --line: rgb(28 22 18 / 0.14);
+    --line-strong: rgb(28 22 18 / 0.28);
+    --accent: #6f5018;
+    --accent-ink: #fffaf3;
+    --danger: var(--cinnabar-700);
+    --danger-ink: #fff8f6;
+    --success: #0e6b3a;
+    --success-ink: #f4fff8;
+    --warning: #8a5a10;
+    --warning-ink: #fffaf3;
+    --focus: #6f5018;
+    --scrim: rgb(28 22 18 / 0.46);
+    --money-up: #0e6b3a;
+    --money-down: #8c2f2a;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+    --motion-slow: 0ms;
+  }
+}

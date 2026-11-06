@@ -1,24 +1,14 @@
 import { useState } from 'react';
-import { SEAT_COUNT, WIND_NAMES, type PlayerView, type RulesConfig } from '@mahjong/shared';
+import { SEAT_COUNT, WIND_CHINESE, WIND_NAMES, type PlayerView, type RulesConfig } from '@mahjong/shared';
 import { api } from '../socket.js';
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="field">
-      <span className="field-label">{label}</span>
-      {children}
-      {hint && <span className="field-hint">{hint}</span>}
-    </label>
-  );
-}
+import { Badge } from '../ui/Badge.js';
+import { Button } from '../ui/Button.js';
+import { Card } from '../ui/Card.js';
+import { Field, Input, Select } from '../ui/Input.js';
+import { Modal } from '../ui/Modal.js';
+import { ThemeToggle } from '../ui/ThemeToggle.js';
+import { Toast } from '../ui/Toast.js';
+import { TileGlyph } from './Tile.js';
 
 function RulesPanel({
   rules,
@@ -35,13 +25,17 @@ function RulesPanel({
     onChange({ [key]: e.target.checked } as Partial<RulesConfig>);
 
   return (
-    <div className="rules-panel">
-      <h3>Table rules</h3>
-      {!editable && <p className="field-hint">Only the host can change these.</p>}
+    <Card className="rules-panel" title="Table rules">
+      <p className="field-hint">
+        {editable
+          ? 'Rules lock when the game starts. They only change the next game.'
+          : 'Only the host can change these. Rules lock when the game starts.'}
+      </p>
 
+      <p className="rules-group">Money</p>
       <div className="rules-grid">
         <Field label="Base (底)" hint="Paid on every win, before tai">
-          <input
+          <Input
             type="number"
             value={rules.base}
             min={0}
@@ -51,7 +45,7 @@ function RulesPanel({
         </Field>
 
         <Field label="Per tai (台)" hint="Payout = base + tai × this">
-          <input
+          <Input
             type="number"
             value={rules.taiValue}
             min={0}
@@ -60,8 +54,11 @@ function RulesPanel({
           />
         </Field>
 
+      </div>
+      <p className="rules-group">Length</p>
+      <div className="rules-grid">
         <Field label="Rounds (圈)" hint="One round is the deal passing through all four">
-          <input
+          <Input
             type="number"
             value={rules.rounds}
             min={1}
@@ -72,7 +69,7 @@ function RulesPanel({
         </Field>
 
         <Field label="Minimum tai" hint="0 allows a bare win (屁胡)">
-          <input
+          <Input
             type="number"
             value={rules.minTai}
             min={0}
@@ -82,7 +79,7 @@ function RulesPanel({
         </Field>
 
         <Field label="Tai ceiling" hint="0 for no cap; some tables cap at 8">
-          <input
+          <Input
             type="number"
             value={rules.maxTai}
             min={0}
@@ -92,7 +89,7 @@ function RulesPanel({
         </Field>
 
         <Field label="Dealer streak cap" hint="連莊 stops adding tai past this">
-          <input
+          <Input
             type="number"
             value={rules.streakCap}
             min={0}
@@ -102,18 +99,18 @@ function RulesPanel({
         </Field>
 
         <Field label="Tai scale">
-          <select
+          <Select
             value={rules.taiScale}
             disabled={!editable}
             onChange={(e) => onChange({ taiScale: e.target.value as RulesConfig['taiScale'] })}
           >
             <option value="traditional">Traditional (清一色 8, 碰碰胡 4)</option>
             <option value="simplified">Simplified (清一色 6, 混一色 3)</option>
-          </select>
+          </Select>
         </Field>
 
         <Field label="Dead wall" hint="Tiles left when the hand is declared drawn">
-          <input
+          <Input
             type="number"
             value={rules.wallDeadTiles}
             min={0}
@@ -187,7 +184,7 @@ function RulesPanel({
           Allow 一炮多響 — more than one player winning off a single discard.
         </label>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -211,8 +208,18 @@ export function Landing({
 
   return (
     <div className="landing">
+      <div className="landing-top">
+        <ThemeToggle />
+      </div>
       <header className="landing-head">
-        <h1>
+        <div className="brand-tiles" aria-hidden="true">
+          <TileGlyph tile={0} size="hand" />
+          <TileGlyph tile={4} size="hand" />
+          <TileGlyph tile={31} size="hand" />
+          <TileGlyph tile={27} size="hand" />
+        </div>
+        <p className="eyebrow">16 tiles · 4 players</p>
+        <h1 className="display">
           Taiwanese Mahjong <span className="cn">台灣麻將</span>
         </h1>
         <p>
@@ -221,24 +228,47 @@ export function Landing({
         </p>
       </header>
 
-      <div className="landing-card">
-        <Field label="Your name">
-          <input
-            value={name}
-            maxLength={20}
-            placeholder="Elliot"
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Field>
+      <ol className="steps">
+        <li>
+          <span className="step-num">1</span>
+          <span>
+            <strong>Open a table</strong> and share the 4-letter code.
+          </span>
+        </li>
+        <li>
+          <span className="step-num">2</span>
+          <span>
+            <strong>Fill four seats.</strong> The host can add a bot if someone is missing.
+          </span>
+        </li>
+        <li>
+          <span className="step-num">3</span>
+          <span>
+            <strong>Tap a tile to discard.</strong> Calls show up when you can chi, pong, gang, or win.
+          </span>
+        </li>
+      </ol>
 
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={busy}
-          onClick={() => onCreate(name)}
+      <Card className="landing-card">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!busy) onCreate(name);
+          }}
         >
-          Create a table
-        </button>
+          <Field label="Your name">
+            <Input
+              value={name}
+              maxLength={20}
+              placeholder="Elliot"
+              autoComplete="nickname"
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Field>
+          <Button type="submit" variant="primary" fullWidth disabled={busy}>
+            {busy ? 'One moment…' : 'Create a table'}
+          </Button>
+        </form>
 
         <div className="divider">or join with a code</div>
 
@@ -249,35 +279,37 @@ export function Landing({
             if (!busy && code.length >= 4) onJoin(code, name);
           }}
         >
-          <input
+          <Input
             className="code-input"
             value={code}
             maxLength={4}
             placeholder="ABCD"
             autoComplete="off"
             enterKeyHint="go"
+            aria-label="Table code"
             onChange={(e) => setCode(e.target.value.toUpperCase())}
           />
-          <button
-            type="submit"
-            className="btn"
-            disabled={busy || code.length < 4}
-          >
+          <Button type="submit" variant="secondary" disabled={busy || code.length < 4}>
             Join
-          </button>
+          </Button>
         </form>
 
-        {error && <p className="error">{error}</p>}
+        {error && <Toast>{error}</Toast>}
 
         {onUpdate && (
           <div className="landing-update">
-            <button type="button" className="btn" disabled={busy || updating} onClick={onUpdate}>
+            <Button variant="secondary" fullWidth disabled={busy || updating} onClick={onUpdate}>
               {updating ? 'Updating…' : 'Update'}
-            </button>
+            </Button>
             <p className="field-hint">Loads the latest Railway deploy in one tap.</p>
           </div>
         )}
-      </div>
+        {import.meta.env.DEV && (
+          <p className="dev-link">
+            <a href="#/styleguide">Style guide</a>
+          </p>
+        )}
+      </Card>
     </div>
   );
 }
@@ -313,93 +345,88 @@ export function Lobby({ view, onExit }: { view: PlayerView; onExit?: () => void 
     <div className="lobby">
       <div className="lobby-head">
         <div>
+          <p className="eyebrow">Waiting room</p>
           <h1>Table {view.roomCode}</h1>
-          <p>Share this code so others can join.</p>
+          <p>Share this code. You will sit at the bottom once play starts.</p>
         </div>
         <div className="lobby-head-actions">
-          <button type="button" className="btn code-badge" onClick={copyCode}>
+          <ThemeToggle />
+          <Button variant="secondary" className="code-badge" onClick={copyCode}>
             {view.roomCode}
             <span className="code-copy">{copied ? 'copied' : 'copy'}</span>
-          </button>
+          </Button>
           {onExit && (
-            <button type="button" className="btn exit-game" onClick={onExit}>
+            <Button variant="danger" className="exit-game" onClick={onExit}>
               Exit game
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       <div className="lobby-body">
-        <div className="seats-card">
-          <h3>
-            Seats ({view.players.length}/{SEAT_COUNT})
-          </h3>
+        <Card className="seats-card" title={`Seats (${view.players.length}/${SEAT_COUNT})`}>
           <ul className="seat-list">
             {view.players.map((p) => (
-              <li key={p.seat} className={p.seat === view.you ? 'me' : ''}>
-                <span className="seat-wind">{WIND_NAMES[p.seatWind]}</span>
+              <li
+                key={p.seat}
+                className={p.seat === view.you ? 'me' : ''}
+                style={{ borderLeft: `4px solid var(--seat-${['east', 'south', 'west', 'north'][p.seatWind]})` }}
+              >
+                <span className="seat-wind">
+                  {WIND_CHINESE[p.seatWind]} {WIND_NAMES[p.seatWind]}
+                </span>
                 <span className="seat-name">
                   {p.name}
                   {p.seat === view.you && ' (you)'}
                   {p.seat === view.hostSeat && ' · host'}
                 </span>
                 <span className="seat-tags">
-                  {p.isBot && <span className="tag">bot</span>}
-                  {!p.isBot && !p.connected && <span className="tag warn">away</span>}
+                  {p.isBot && <Badge>bot</Badge>}
+                  {!p.isBot && !p.connected && <Badge tone="warning">away</Badge>}
                 </span>
                 {isHost && p.isBot && (
-                  <button
-                    type="button"
-                    className="btn btn-tiny"
-                    onClick={() => void run(() => api.removeBot(p.seat))}
-                  >
-                    remove
-                  </button>
+                  <Button variant="ghost" size="sm" onClick={() => void run(() => api.removeBot(p.seat))}>
+                    Remove
+                  </Button>
                 )}
                 {isHost && !p.isBot && p.seat !== view.you && (
-                  <button
-                    type="button"
-                    className="btn btn-tiny"
-                    onClick={() => setKickSeat(p.seat)}
-                  >
+                  <Button variant="danger" size="sm" onClick={() => setKickSeat(p.seat)}>
                     Kick
-                  </button>
+                  </Button>
                 )}
               </li>
             ))}
             {Array.from({ length: seatsLeft }).map((_, i) => (
               <li key={`empty-${i}`} className="empty">
                 <span className="seat-wind">—</span>
-                <span className="seat-name">Empty</span>
+                <span className="seat-name">Empty seat</span>
               </li>
             ))}
           </ul>
 
           {isHost && (
             <div className="lobby-actions">
-              <button
-                type="button"
-                className="btn"
+              <Button
+                variant="secondary"
                 disabled={seatsLeft === 0}
                 onClick={() => void run(() => api.addBot())}
               >
                 {seatsLeft === 1 ? 'Add a bot (fills the table)' : 'Add a bot'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
+              </Button>
+              <Button
+                variant="primary"
                 disabled={view.players.length !== SEAT_COUNT}
                 onClick={() => void run(() => api.startGame())}
               >
                 {view.players.length === SEAT_COUNT
                   ? 'Start playing'
                   : `Need ${seatsLeft} more`}
-              </button>
+              </Button>
             </div>
           )}
           {!isHost && <p className="field-hint">Waiting for the host to start.</p>}
-          {error && <p className="error">{error}</p>}
-        </div>
+          {error && <Toast>{error}</Toast>}
+        </Card>
 
         <RulesPanel
           rules={view.rules}
@@ -409,31 +436,27 @@ export function Lobby({ view, onExit }: { view: PlayerView; onExit?: () => void 
       </div>
 
       {kickSeat !== null && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="kick-title">
-          <div className="modal modal-narrow">
-            <h2 id="kick-title">Kick {view.players[kickSeat]?.name ?? 'this player'}?</h2>
-            <p className="confirm-rule">
-              They will leave the table. They cannot rejoin with the same seat
-              unless they come back as a new player.
-            </p>
-            <div className="modal-actions">
-              <button type="button" className="btn" onClick={() => setKickSeat(null)}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-win"
-                onClick={() => {
-                  const seat = kickSeat;
-                  setKickSeat(null);
-                  void run(() => api.kick(seat));
-                }}
-              >
-                Kick
-              </button>
-            </div>
+        <Modal title={`Kick ${view.players[kickSeat]?.name ?? 'this player'}?`} sheet narrow>
+          <p className="confirm-rule">
+            They will leave the table. They can come back with the code as a new player,
+            in an empty seat.
+          </p>
+          <div className="modal-actions">
+            <Button variant="secondary" onClick={() => setKickSeat(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                const seat = kickSeat;
+                setKickSeat(null);
+                void run(() => api.kick(seat));
+              }}
+            >
+              Kick
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

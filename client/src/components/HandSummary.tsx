@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { WIND_NAMES, cornerLabelOf, type HandResult, type PlayerView } from '@mahjong/shared';
+import { WIND_NAMES, type HandResult, type PlayerView } from '@mahjong/shared';
+import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.js';
+import { Toast } from '../ui/Toast.js';
 import { TileFace } from './Tile.js';
 
 function money(n: number): string {
@@ -47,9 +50,7 @@ export function HandSummary({
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
-        <h2>{result.kind === 'win' ? 'Hand won' : 'Drawn hand'}</h2>
+    <Modal title={result.kind === 'win' ? 'Hand won' : 'Drawn hand'}>
         <p className="summary-line">{result.summary}</p>
 
         {result.kind === 'win' && result.revealedConcealed.length > 0 && (
@@ -58,7 +59,7 @@ export function HandSummary({
               <TileFace
                 key={`${t}-${i}`}
                 tile={t}
-                size="sm"
+                size="meld"
                 highlight={t === result.winningTile}
               />
             ))}
@@ -161,9 +162,9 @@ export function HandSummary({
             : 'The deal passes to the next player.'}
         </p>
 
-        <button
-          type="button"
-          className="btn btn-primary"
+        <Button
+          variant="primary"
+          fullWidth
           onClick={() => void pressNext()}
           disabled={!you || youReady}
         >
@@ -174,12 +175,11 @@ export function HandSummary({
                 ? `Waiting on ${waitingOn.join(', ')}`
                 : 'Starting…'
               : 'Next hand'}
-        </button>
+        </Button>
         {youReady && waitingOn.length > 0 && (
           <p className="field-hint">The next hand starts when everyone is ready.</p>
         )}
-        {error && <p className="error">{error}</p>}
-      </div>
-    </div>
+        {error && <Toast>{error}</Toast>}
+    </Modal>
   );
 }

@@ -12,7 +12,12 @@ import {
   type Tile,
 } from '@mahjong/shared';
 import { api } from '../socket.js';
-import { TileBack, TileFace } from './Tile.js';
+import { Button } from '../ui/Button.js';
+import { Hint } from '../ui/Hint.js';
+import { Modal } from '../ui/Modal.js';
+import { SeatPanel } from '../ui/SeatPanel.js';
+import { Toast } from '../ui/Toast.js';
+import { TileBack, TileFace, type TileSize } from './Tile.js';
 import { ActionBar } from './ActionBar.js';
 import { ClaimPopup } from './ClaimPopup.js';
 import { HandSummary } from './HandSummary.js';
@@ -97,7 +102,7 @@ function Melds({
   player: PublicPlayer;
   /** When set, the set sits in that side's meld track on the square. */
   pos?: Pos;
-  size?: 'xs' | 'sm';
+  size?: TileSize;
   /** The owner may see which tile an 暗槓 is. Everyone else sees backs. */
   revealConcealed?: boolean;
   /** Your own flowers sit beside the hand instead. */
@@ -157,8 +162,9 @@ function River({
           <TileFace
             key={`${t}-${i}`}
             tile={t}
-            size="xs"
+            size="discard"
             highlight={isLast}
+            claimable={Boolean(isLast && claimable)}
             className={cls(
               isLast && 'river-fresh',
               isLast && claimable && 'river-claimable',
@@ -197,54 +203,21 @@ function SeatNameplate({
   const { isCurrent, isWaiting, away } = seatFlags(player, view);
 
   return (
-    <div
-      className={cls(
-        'seat',
-        `seat-${pos}`,
-        self && 'seat-self',
-        isCurrent && 'seat-current',
-        isWaiting && 'seat-waiting',
-        away && 'seat-away',
-      )}
-    >
-      <span
-        className={cls('seat-avatar', player.isDealer && 'seat-avatar-dealer')}
-        aria-hidden="true"
-      >
-        {away ? '—' : WIND_CHINESE[player.seatWind]}
-      </span>
-      <div className="seat-body">
-        <div className="seat-header">
-          <span className="seat-wind-badge">{WIND_CHINESE[player.seatWind]}</span>
-          <span className="seat-name">
-            {player.name}
-            {self && ' (you)'}
-          </span>
-          {player.isDealer && <span className="tag dealer">莊</span>}
-          {player.isBot && <span className="tag">bot</span>}
-          {away && <span className="tag warn">away</span>}
-          {player.passedWater && (
-            <span className="tag warn" title="過水 — cannot win until they pass a hand">
-              過水
-            </span>
-          )}
-          {isWaiting && <span className="tag thinking">thinking…</span>}
-        </div>
-        <div className="seat-chips">
-          <span className="seat-coin" aria-hidden="true" />
-          <span className="seat-score">{player.score}</span>
-        </div>
-        {canReplace && onReplace && (
-          <button
-            type="button"
-            className="btn btn-tiny replace-bot"
-            onClick={() => onReplace(player.seat)}
-          >
-            Replace with bot
-          </button>
-        )}
-      </div>
-    </div>
+    <SeatPanel
+      pos={pos}
+      name={player.name}
+      wind={player.seatWind}
+      score={player.score}
+      self={self}
+      dealer={player.isDealer}
+      bot={player.isBot}
+      away={away}
+      passedWater={player.passedWater}
+      thinking={isWaiting}
+      current={isCurrent}
+      waiting={isWaiting}
+      onReplace={canReplace && onReplace ? () => onReplace(player.seat) : undefined}
+    />
   );
 }
 
@@ -328,35 +301,32 @@ function ConfirmDialog({
 }) {
   const isDiscard = confirm.kind === 'discard';
   return (
-    <div className="modal-backdrop">
-      <div className="modal modal-narrow">
-        <h2>Give up the win?</h2>
-        <p>
-          {isDiscard ? (
-            <>
-              You can win this hand right now. Throwing{' '}
-              <strong>{cornerLabelOf(confirm.tile)}</strong> instead declines it.
-            </>
-          ) : (
-            <>You are choosing to pass on a winning tile.</>
-          )}
-        </p>
-        <p className="confirm-rule">
-          That puts you <strong>過水</strong>: you will not be able to win at all
-          — not even on a self-draw — until you draw a tile you cannot win on and
-          then discard. Passing is a real strategic option, since a self-draw
-          collects from all three opponents instead of one, but it is a gamble.
-        </p>
-        <div className="modal-actions">
-          <button type="button" className="btn" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="button" className="btn btn-pass-warn" onClick={onConfirm}>
-            Yes, give up the win
-          </button>
-        </div>
+    <Modal title="Give up the win?" sheet narrow>
+      <p>
+        {isDiscard ? (
+          <>
+            You can win this hand right now. Throwing{' '}
+            <strong>{cornerLabelOf(confirm.tile)}</strong> instead declines it.
+          </>
+        ) : (
+          <>You are choosing to pass on a winning tile.</>
+        )}
+      </p>
+      <p className="confirm-rule">
+        That puts you <strong>過水</strong>: you will not be able to win at all
+        — not even on a self-draw — until you draw a tile you cannot win on and
+        then discard. Passing is a real strategic option, since a self-draw
+        collects from all three opponents instead of one, but it is a gamble.
+      </p>
+      <div className="modal-actions">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="secondary" className="btn-pass-warn" onClick={onConfirm}>
+          Yes, give up the win
+        </Button>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -612,7 +582,20 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
 
   return (
     <div className="table-screen">
+      <a className="skip-link" href="#your-hand">
+        Skip to your hand
+      </a>
       <header className="game-header">
+        <span
+          className={cls(
+            'turn-chip',
+            view.currentSeat === view.you && !claimOpen && 'turn-chip-you',
+            claimOpen && 'turn-chip-hold',
+          )}
+          aria-live="polite"
+        >
+          {hub.status}
+        </span>
         <div className="header-block">
           <span className="header-label">Round</span>
           <span className="header-value">
@@ -640,16 +623,18 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
           <span className="header-label">Stakes</span>
           <span className="header-value">
             {view.rules.base}/{view.rules.taiValue}
+            <span className="header-sub"> base / tai</span>
           </span>
         </div>
         <div className="header-block header-code">
           <span className="header-label">Table</span>
           <span className="header-value">{view.roomCode}</span>
         </div>
+        {view.log.length > 0 && <p className="last-event">{view.log[view.log.length - 1]}</p>}
         {onExit && (
-          <button type="button" className="btn btn-tiny exit-game" onClick={onExit}>
+          <Button variant="danger" size="sm" className="exit-game" onClick={onExit}>
             Exit game
-          </button>
+          </Button>
         )}
       </header>
 
@@ -689,7 +674,13 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
             <WindCompass
               view={view}
               faces={{ north, east, south: me, west }}
-              status={hub.status}
+              status={
+                hub.status === 'Claim' || hub.status === 'Gang'
+                  ? hub.status
+                  : view.currentSeat === view.you
+                    ? 'You'
+                    : (view.players[view.currentSeat]?.name ?? '')
+              }
               note={hub.note}
               hold={hub.hold}
               kongTile={view.pendingKong?.tile ?? null}
@@ -715,25 +706,22 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
         {east && plate(east, 'east')}
       </aside>
 
-      <div className={cls('my-area', myClaim && 'my-area-claim')}>
+      <div className={cls('my-area', myClaim && 'my-area-claim')} id="your-hand">
+        <Hint id="table" title="Tap a tile to discard. Swipe the row to see them all.">
+          Drag tiles to rearrange. A window appears when you can chi, pong, gang, or win.
+        </Hint>
         {me && (
-          <div className="my-header seat seat-south seat-self">
-            <span className="seat-avatar" aria-hidden="true">
-              {WIND_CHINESE[me.seatWind]}
-            </span>
-            <span className="seat-wind-badge">{WIND_CHINESE[me.seatWind]}</span>
-            <span className="seat-name">{me.name} (you)</span>
-            {me.isDealer && <span className="tag dealer">莊</span>}
-            {me.passedWater && (
-              <span className="tag warn" title="Cannot win until you pass a hand">
-                過水
-              </span>
-            )}
-            <span className="seat-chips">
-              <span className="seat-coin" aria-hidden="true" />
-              <span className="seat-score">{me.score}</span>
-            </span>
-
+          <SeatPanel
+            className="my-header"
+            pos="south"
+            name={me.name}
+            wind={me.seatWind}
+            score={me.score}
+            self
+            dealer={me.isDealer}
+            passedWater={me.passedWater}
+            current={view.currentSeat === me.seat}
+          >
             {view.analysis && (
               <span className="analysis">
                 {view.analysis.shanten <= 0 ? (
@@ -758,10 +746,10 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
                 )}
               </span>
             )}
-          </div>
+          </SeatPanel>
         )}
 
-        {me && <Melds player={me} size="sm" revealConcealed includeFlowers={false} />}
+        {me && <Melds player={me} size="meld" revealConcealed includeFlowers={false} />}
 
         <div className="my-tray">
           <MyHand
@@ -771,9 +759,10 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
             onDiscard={onTileClick}
           />
           {me && me.flowers.length > 0 && (
-            <div className="my-flowers" aria-label="Flowers">
+            <div className="my-flowers">
+              <span className="flowers-label">Flowers</span>
               {me.flowers.map((t, i) => (
-                <TileFace key={`${t}-${i}`} tile={t} size="sm" />
+                <TileFace key={`${t}-${i}`} tile={t} size="meld" />
               ))}
             </div>
           )}
@@ -789,27 +778,24 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
             …
           </div>
         )}
-        {error && <p className="error">{error}</p>}
+        {error && <Toast>{error}</Toast>}
       </div>
 
       {confirm?.kind === 'replace' && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="replace-title">
-          <div className="modal modal-narrow">
-            <h2 id="replace-title">Replace {confirm.name} with a bot?</h2>
-            <p className="confirm-rule">
-              They left the table. A bot will play their hand and they will not
-              get this seat back.
-            </p>
-            <div className="modal-actions">
-              <button type="button" className="btn" onClick={() => setConfirm(null)}>
-                Cancel
-              </button>
-              <button type="button" className="btn btn-primary" onClick={resolveConfirm}>
-                Replace with bot
-              </button>
-            </div>
+        <Modal title={`Replace ${confirm.name} with a bot?`} sheet narrow>
+          <p className="confirm-rule">
+            They left the table. A bot will play their hand and they will not
+            get this seat back.
+          </p>
+          <div className="modal-actions">
+            <Button variant="secondary" onClick={() => setConfirm(null)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={resolveConfirm}>
+              Replace with bot
+            </Button>
           </div>
-        </div>
+        </Modal>
       )}
 
       {confirm && confirm.kind !== 'replace' && (
@@ -825,59 +811,52 @@ export function Table({ view, onExit }: { view: PlayerView; onExit?: () => void 
       )}
 
       {view.phase === 'gameOver' && (
-        <div className="modal-backdrop">
-          <div className="modal modal-narrow">
-            <h2>Game over</h2>
-            <p className="modal-sub">
-              {view.roundNumber > 1 || view.rules.rounds > 1
-                ? `${view.rules.rounds} round${view.rules.rounds === 1 ? '' : 's'} played`
-                : 'Round complete'}{' '}
-              · {view.handNumber} hand{view.handNumber === 1 ? '' : 's'}
-            </p>
-            <div className="scoreboard">
-              {[...view.players]
-                .sort((a, b) => b.score - a.score)
-                .map((p, i) => (
-                  <div key={p.seat} className="score-row">
-                    <span className="score-name">
-                      {i + 1}. {p.name}
-                      {p.seat === view.you && ' (you)'}
-                    </span>
-                    <span className={`score-total ${p.score >= 0 ? 'pos' : 'neg'}`}>
-                      {p.score > 0 ? `+${p.score}` : p.score}
-                    </span>
-                  </div>
-                ))}
-            </div>
-
-            {isHost ? (
-              <>
-                <div className="modal-actions">
-                  <button type="button" className="btn" onClick={() => void run(api.returnToLobby)}>
-                    Back to lobby
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => void run(api.startGame)}
-                  >
-                    New game
-                  </button>
+        <Modal title="Game over" narrow>
+          <p className="modal-sub">
+            {view.roundNumber > 1 || view.rules.rounds > 1
+              ? `${view.rules.rounds} round${view.rules.rounds === 1 ? '' : 's'} played`
+              : 'Round complete'}{' '}
+            · {view.handNumber} hand{view.handNumber === 1 ? '' : 's'}
+          </p>
+          <div className="scoreboard">
+            {[...view.players]
+              .sort((a, b) => b.score - a.score)
+              .map((p, i) => (
+                <div key={p.seat} className="score-row">
+                  <span className="score-name">
+                    {i + 1}. {p.name}
+                    {p.seat === view.you && ' (you)'}
+                  </span>
+                  <span className={`score-total ${p.score >= 0 ? 'pos' : 'neg'}`}>
+                    {p.score > 0 ? `+${p.score}` : p.score}
+                  </span>
                 </div>
-                <p className="confirm-rule">
-                  Everyone keeps their seat either way. The lobby is where you can change the
-                  rules or swap a bot out before playing again.
-                </p>
-              </>
-            ) : (
-              <p className="confirm-rule">
-                Waiting for {view.players[view.hostSeat ?? 0]?.name} to start another game or send
-                the table back to the lobby.
-              </p>
-            )}
-            {error && <p className="error">{error}</p>}
+              ))}
           </div>
-        </div>
+
+          {isHost ? (
+            <>
+              <div className="modal-actions">
+                <Button variant="secondary" onClick={() => void run(api.returnToLobby)}>
+                  Back to lobby
+                </Button>
+                <Button variant="primary" onClick={() => void run(api.startGame)}>
+                  New game
+                </Button>
+              </div>
+              <p className="confirm-rule">
+                Everyone keeps their seat either way. The lobby is where you can change the
+                rules or swap a bot out before playing again.
+              </p>
+            </>
+          ) : (
+            <p className="confirm-rule">
+              Waiting for {view.players[view.hostSeat ?? 0]?.name} to start another game or send
+              the table back to the lobby.
+            </p>
+          )}
+          {error && <Toast>{error}</Toast>}
+        </Modal>
       )}
     </div>
   );

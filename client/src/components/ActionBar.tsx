@@ -1,4 +1,5 @@
 import type { AvailableAction, PendingDecision } from '@mahjong/shared';
+import { ActionButtons } from '../ui/ActionButtons.js';
 
 const REASON_TEXT: Record<PendingDecision['reason'], string> = {
   turn: 'Your turn',
@@ -6,23 +7,6 @@ const REASON_TEXT: Record<PendingDecision['reason'], string> = {
   claim: 'Claim the discard?',
   robbing: 'Rob the gang?',
 };
-
-const TYPE_ORDER: Record<string, number> = {
-  win: 0,
-  flowerWin: 1,
-  kong: 2,
-  concealedKong: 3,
-  addedKong: 4,
-  pung: 5,
-  chow: 6,
-  pass: 9,
-};
-
-function actionClass(action: AvailableAction): string {
-  if (action.type === 'win' || action.type === 'flowerWin') return 'btn btn-win';
-  if (action.type === 'pass') return action.armsPassedWater ? 'btn btn-pass-warn' : 'btn btn-pass';
-  return 'btn btn-call';
-}
 
 /**
  * The choice panel.
@@ -39,38 +23,18 @@ export function ActionBar({
   decision: PendingDecision;
   onAct: (action: AvailableAction) => void;
 }) {
-  const actions = [...decision.actions].sort(
-    (a, b) => (TYPE_ORDER[a.type] ?? 8) - (TYPE_ORDER[b.type] ?? 8),
-  );
-
-  if (actions.length === 0 && !decision.canDiscard) return null;
+  if (decision.actions.length === 0 && !decision.canDiscard) return null;
 
   return (
     <div className="action-bar">
       <div className="action-reason">
         {REASON_TEXT[decision.reason]}
-        {decision.canDiscard && actions.length === 0 && (
+        {decision.canDiscard && decision.actions.length === 0 && (
           <span className="action-hint"> — tap a tile to discard</span>
         )}
       </div>
 
-      {actions.length > 0 && (
-        <div className="action-buttons">
-          {actions.map((action) => (
-            <button
-              key={action.id}
-              type="button"
-              className={actionClass(action)}
-              onClick={() => onAct(action)}
-            >
-              <span className="action-label">{action.label}</span>
-              {action.taiPreview !== undefined && action.type !== 'pass' && (
-                <span className="action-tai">{action.taiPreview} tai</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      {decision.actions.length > 0 && <ActionButtons actions={decision.actions} onAct={onAct} />}
 
       {decision.decliningWinArmsPassedWater && (
         <div className="action-warning">
